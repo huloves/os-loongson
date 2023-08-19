@@ -1,0 +1,4 @@
+.vscode/
+qemu/
+toolchains/
+loongarch64-clfs-6.3-cross-tools-gcc-full.tar.xz
