@@ -19,7 +19,7 @@ if [[ ! -d "$OBJ_DIR" ]];then
 fi
 
 if [[ -d "$OBJ_DIR" ]];then
-	BIN="cat"
+	BIN="prog_no_arg"
 	CFLAGS="-m32 -Wall -c -fno-builtin -W -Wstrict-prototypes \
 		-Wmissing-prototypes -Wsystem-headers -fno-stack-protector"
 	LIBS="-I ../lib/ -I ../lib/kernel/ -I ../lib/user/ -I \
@@ -28,7 +28,7 @@ if [[ -d "$OBJ_DIR" ]];then
 	OBJS="../build/string.o ../build/syscall.o \
 		../build/stdio.o ../build/assert.o"
 	DD_IN=$OBJ_DIR/$BIN
-	DD_OUT="/home/huloves/repositories/os-loongson/bochs/hd80M.img" 
+	DD_OUT="/home/huloves/repositories/os-loongson/bochs/hd60M.img" 
 
 	nasm -f elf ./start.S -o $OBJ_DIR/start.o
 	ar rcs $OBJ_DIR/simple_crt.a $OBJS $OBJ_DIR/start.o

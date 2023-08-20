@@ -211,14 +211,14 @@ mk_dir:
 	if [ ! -d $(BUILD_DIR) ];then mkdir $(BUILD_DIR);fi
 
 hd:
-	dd if=$(BUILD_DIR)/mbr.bin of=/home/huloves/repositories/os-loongson/bochs/hd10M.img bs=512 count=1  conv=notrunc
-	dd if=$(BUILD_DIR)/loader.bin of=/home/huloves/repositories/os-loongson/bochs/hd10M.img bs=512 count=4 seek=2 conv=notrunc
-	dd if=$(BUILD_DIR)/kernel.bin of=/home/huloves/repositories/os-loongson/bochs/hd10M.img bs=512 count=200 seek=9 conv=notrunc
+	dd if=$(BUILD_DIR)/mbr.bin of=/home/huloves/repositories/os-loongson/bochs/hd60M.img bs=512 count=1  conv=notrunc
+	dd if=$(BUILD_DIR)/loader.bin of=/home/huloves/repositories/os-loongson/bochs/hd60M.img bs=512 count=4 seek=2 conv=notrunc
+	dd if=$(BUILD_DIR)/kernel.bin of=/home/huloves/repositories/os-loongson/bochs/hd60M.img bs=512 count=200 seek=9 conv=notrunc
 ctags:
 	ctags -R
 
 clean:
-	cd $(BUILD_DIR) && rm -f ./* && if [ -e hd*.img  ];then rm ../*.img;fi
+	cd $(BUILD_DIR) && rm -rf ./* && if [ -e hd*.img  ];then rm ../*.img;fi
 
 build: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/mbr.bin $(BUILD_DIR)/loader.bin
 
