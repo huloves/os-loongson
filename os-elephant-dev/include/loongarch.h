@@ -36,7 +36,7 @@
 
 /* Direct Map window 0/1 */
 #define CSR_DMW0_PLV0		_CONST64_(1 << 0)
-#define CSR_DMW0_VSEG		_CONST64_(0x8000ULL)
+#define CSR_DMW0_VSEG		_CONST64_(0x8000)
 #define CSR_DMW0_BASE		(CSR_DMW0_VSEG << DMW_PABITS)
 #define CSR_DMW0_INIT		(CSR_DMW0_BASE | CSR_DMW0_PLV0)
 

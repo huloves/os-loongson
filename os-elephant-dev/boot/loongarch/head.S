@@ -1,7 +1,16 @@
+#include <regdef.h>
 #include <loongarch.h>
 #include <bootinfo.h>
 
+.section .head.text
+
 	.align 12
+
+.extern init_all
+.extern fw_arg0
+.extern fw_arg1
+.extern fw_arg2
+
 .global kernel_entry
 kernel_entry:
 	/* Config direct window and set PG */
@@ -42,3 +51,13 @@ kernel_entry:
 	csrwr		zero, PERCPU_BASE_KS
 	/* GPR21 used for percpu base (runtime), initialized as 0 */
 	move		u0, zero
+
+	la.pcrel	tp, init_thread_union
+	/* Set the SP after an empty pt_regs.  */
+	li.d		sp, (KERNEL_STACK_SIZE - PT_SIZE)
+	add.d		sp, sp, tp
+	/* set_saved_sp	sp, t0, t1 */
+	la.abs		t0, kernelsp
+	st.d		sp, t0, 0
+
+	bl		init_all
