@@ -3,7 +3,7 @@ CROSS_COMPILE = ../toolchains/cross-tools/bin/loongarch64-unknown-linux-gnu-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
-CFLAGS = -Wall -g -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -c -I ./include
+CFLAGS = -Wall -g -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -c -I ./include/
 AFLAGS = -nostdinc -D__ASSEMBLY__ -fno-PIE -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib 
 
@@ -18,15 +18,15 @@ $(BUILD_DIR)/setup.o: boot/loongarch/setup.c
 $(BUILD_DIR)/init.o: kernel/init.c
 	$(CC) $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/kernel.bin: $(OBJS)
+$(BUILD_DIR)/kernel.elf: $(OBJS)
 	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
 
 clean:
 	cd $(BUILD_DIR) && rm -rf ./* && if [ -e hd*.img  ];then rm ../*.img;fi
 
-build: $(BUILD_DIR)/kernel.bin
+build_dir:
+	mkdir -p $(BUILD_DIR)
 
-all: clean build
+build: $(BUILD_DIR)/kernel.elf
 
-run:
-	../qemu/qemu-system-loongarch64
+all: build_dir clean build

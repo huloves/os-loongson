@@ -2,14 +2,9 @@
 #include <loongarch.h>
 #include <bootinfo.h>
 
-.section .head.text
+.section ".head.text","ax"
 
 	.align 12
-
-.extern init_all
-.extern fw_arg0
-.extern fw_arg1
-.extern fw_arg2
 
 .global kernel_entry
 kernel_entry:
