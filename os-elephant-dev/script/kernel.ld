@@ -1,8 +1,8 @@
-ENTRY(kernel_entry)   /* 设置入口点 */
+ENTRY(init_all)   /* 设置入口点 */
 SECTIONS
 {
-        . = 0x9000000000200000;
-	PROVIDE( _start = . );
+        . = 0x0000000000200000;
+	_start = .;
         .head.text : {
                 KEEP(*(.head.text))
         }
@@ -33,5 +33,5 @@ SECTIONS
                 *(.data.init_task)
                 . = ALIGN(8192);
         }
-	PROVIDE( _end = . );
+	_end = .;
 }
