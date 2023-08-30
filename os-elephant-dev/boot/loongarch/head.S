@@ -16,14 +16,14 @@ kernel_entry:
 	csrwr		t0, LOONGARCH_CSR_DMWIN1
 
 	/* Enable PG */
-	li.w		t0, 0xb0		# PLV=0, IE=0, PG=1
+	li.w		t0, 0xb0		# 1011 0000, PLV=0, IE=0, PG=1, DATF=1
 	csrwr		t0, LOONGARCH_CSR_CRMD
-	li.w		t0, 0x04		# PLV=0, PIE=1, PWE=0
+	li.w		t0, 0x04		# 0000 0100, PLV=0, PIE=1, PWE=0
 	csrwr		t0, LOONGARCH_CSR_PRMD
-	li.w		t0, 0x00		# FPE=0, SXE=0, ASXE=0, BTE=0
+	li.w		t0, 0x00		# 0000 0000, FPE=0, SXE=0, ASXE=0, BTE=0, 不使用扩展
 	csrwr		t0, LOONGARCH_CSR_EUEN
 
-	la.pcrel	t0, __bss_start		# clear .bss
+	la.pcrel	t0, __bss_start		# 清空.bss段
 	st.d		zero, t0, 0
 	la.pcrel	t1, __bss_stop
 1:
@@ -31,8 +31,11 @@ kernel_entry:
 	st.d		zero, t0, 0
 	bne		t0, t1, 1b
 
+	/**
+	 * 保存固件传递的参数
+	 */
 	la.pcrel	t0, fw_arg0
-	st.d		a0, t0, 0		# firmware arguments
+	st.d		a0, t0, 0
 	la.pcrel	t0, fw_arg1
 	st.d		a1, t0, 0
 	la.pcrel	t0, fw_arg2
