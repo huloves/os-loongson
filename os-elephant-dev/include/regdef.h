@@ -1,15 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0 */
-/*
- * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
- */
-#ifndef _ASM_REGDEF_H
-#define _ASM_REGDEF_H
+/* os-elephant-dev/include/regdef.h */
+#ifndef _REGDEF_H
+#define _REGDEF_H
 
-#define zero	$r0	/* wired zero */
-#define ra	$r1	/* return address */
+#define zero	$r0	/* 常量0 */
+#define ra	$r1	/* 返回地址 */
 #define tp	$r2
-#define sp	$r3	/* stack pointer */
-#define a0	$r4	/* argument registers, a0/a1 reused as v0/v1 for return value */
+#define sp	$r3	/* 栈指针 */
+#define a0	$r4	/* 参数寄存器, a0/a1重用为v0/v1, 作为返回值 */
 #define a1	$r5
 #define a2	$r6
 #define a3	$r7
@@ -17,7 +14,7 @@
 #define a5	$r9
 #define a6	$r10
 #define a7	$r11
-#define t0	$r12	/* caller saved */
+#define t0	$r12	/* 临时寄存器, 调用者保存, 函数内直接使用 */
 #define t1	$r13
 #define t2	$r14
 #define t3	$r15
@@ -27,8 +24,8 @@
 #define t7	$r19
 #define t8	$r20
 #define u0	$r21
-#define fp	$r22	/* frame pointer */
-#define s0	$r23	/* callee saved */
+#define fp	$r22	/* 帧指针 */
+#define s0	$r23	/* 静态寄存器, 子程序使用需要保存和恢复 */
 #define s1	$r24
 #define s2	$r25
 #define s3	$r26
