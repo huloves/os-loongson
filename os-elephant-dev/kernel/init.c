@@ -1,6 +1,6 @@
 // #include "init.h"
 // #include "print.h"
-// #include "interrupt.h"
+#include "interrupt.h"
 // #include "timer.h"
 // #include "memory.h"
 // #include "thread.h"
@@ -10,21 +10,31 @@
 // #include "syscall-init.h"
 // #include "ide.h"
 // #include "fs.h"
-#include <ns16550a.h>
 
-static void puts(char *str)
-{
-	serial_ns16550a_puts(str);
-}
+#ifdef CONFIG_LOONGARCH64
+#include <ns16550a.h>
+#endif
+
+#ifdef CONFIG_LOONGARCH64
+extern void arch_init_irq(void);
+#endif
 
 /*负责初始化所有模块 */
 void init_all()
 {
+#ifdef CONFIG_LOONGARCH64
 	serial_ns16550a_init(9600);
-	puts("hello os-loongson\n");
+	put_str("hello os-loongson\n");
+#endif
+	put_str("init_all\n");
+#ifndef CONFIG_LOONGARCH64
+	idt_init();	     // 初始化中断
+#else
+	put_str("123\n");
+	arch_init_irq();
+	put_str("321\n");
+#endif
 	while(1);
-	// put_str("init_all\n");
-	// idt_init();	     // 初始化中断
 	// mem_init();	     // 初始化内存管理系统
 	// thread_init();    // 初始化线程相关结构
 	// timer_init();     // 初始化PIT

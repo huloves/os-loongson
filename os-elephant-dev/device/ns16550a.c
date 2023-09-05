@@ -73,3 +73,8 @@ void serial_ns16550a_puts(char *str)
 		ch++;
 	}
 }
+
+void put_str(char *str)
+{
+	serial_ns16550a_puts(str);
+}
