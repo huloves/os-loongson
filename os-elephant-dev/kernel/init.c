@@ -1,6 +1,6 @@
 // #include "init.h"
 // #include "print.h"
-#include "interrupt.h"
+// #include "interrupt.h"
 // #include "timer.h"
 // #include "memory.h"
 // #include "thread.h"
@@ -30,9 +30,7 @@ void init_all()
 #ifndef CONFIG_LOONGARCH64
 	idt_init();	     // 初始化中断
 #else
-	put_str("123\n");
 	arch_init_irq();
-	put_str("321\n");
 #endif
 	while(1);
 	// mem_init();	     // 初始化内存管理系统

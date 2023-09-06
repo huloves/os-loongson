@@ -28,8 +28,6 @@ void trap_handler(void)
 	unsigned long era = read_csr_era();
 	unsigned long prmd = read_csr_prmd();
 
-	put_str("@@@@@: 456\n");
-
 	if((prmd & CSR_PRMD_PPLV) != 0)
 		put_str("kerneltrap: not from privilege0");
 	if(intr_get() != 0)
@@ -53,13 +51,12 @@ void arch_init_irq(void)
         unsigned int ecfg = ( 0U << CSR_ECFG_VS_SHIFT ) | 0x3fcU | (0x1 << 11);
         unsigned long tcfg = 0x10000000UL | (1U << 0) | (1U << 1);
 
-        // clear_csr_ecfg(ECFG0_IM);
-	// clear_csr_estat(ESTATF_IP);
+        clear_csr_ecfg(ECFG0_IM);
+	clear_csr_estat(ESTATF_IP);
 
 	write_csr_ecfg(ecfg);
 
 	write_csr_tcfg(tcfg);
 	write_csr_eentry((unsigned long)trap_entry);
-	// arch_local_irq_enable();
-	intr_on();
+	arch_local_irq_enable();
 }

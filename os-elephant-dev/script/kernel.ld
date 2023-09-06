@@ -10,6 +10,7 @@ SECTIONS
 		*(.text)
 		. = ALIGN(4096);
 	}
+	. = ALIGN(1 << 12);
 	.data : {
                 __start_init_task = .;
                 init_thread_union = .; 
@@ -19,19 +20,13 @@ SECTIONS
 		*(.rodata)
 		. = ALIGN(8192);
 	}
+	. = ALIGN(1 << 12);
         __bss_start = .;
 	.bss : {
 		*(.bss)
 		. = ALIGN(4096);
 	}
         __bss_stop = .;
-	.stab : {
-		*(.stab)
-		. = ALIGN(8192);
-	}
-	.data.init_task : {
-                *(.data.init_task)
-                . = ALIGN(8192);
-        }
+	. = ALIGN(1 << 12);
 	PROVIDE( _end = . );
 }

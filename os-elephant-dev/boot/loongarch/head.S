@@ -25,7 +25,7 @@ kernel_entry:
 
 	la.pcrel	t0, __bss_start		# 清空.bss段
 	st.d		zero, t0, 0
-	la.pcrel	t1, __bss_stop
+	la.pcrel	t1, __bss_stop - LONGSIZE
 1:
 	addi.d		t0, t0, LONGSIZE
 	st.d		zero, t0, 0
