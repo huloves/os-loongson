@@ -74,6 +74,11 @@ void serial_ns16550a_puts(char *str)
 	}
 }
 
+void put_char(char ch)
+{
+	serial_ns16550a_putc(ch);
+}
+
 void put_str(char *str)
 {
 	serial_ns16550a_puts(str);
