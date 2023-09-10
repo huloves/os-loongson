@@ -38,6 +38,8 @@ char serial_ns16550a_getc(void);
 /* 发送一个字符串 */
 void serial_ns16550a_puts(char *str);
 
+void put_char(char ch);
+
 void put_str(char *str);
 
 #endif /* _NS16550A_H */

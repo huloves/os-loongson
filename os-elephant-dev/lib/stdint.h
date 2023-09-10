@@ -8,4 +8,15 @@ typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long int uint64_t;
+
+#define NULL ((void*)0)
+#define DIV_ROUND_UP(X, STEP) ((X + STEP - 1) / (STEP))
+#define bool int
+#define true 1
+#define false 0
+
+#define PG_SIZE 4096
+
+#define UNUSED __attribute__ ((unused))
+
 #endif

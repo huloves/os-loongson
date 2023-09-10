@@ -1,15 +1,21 @@
 #include "stdio-kernel.h"
-#include "print.h"
 #include "stdio.h"
+
+#ifndef CONFIG_LOONGARCH64
+#include "print.h"
 #include "console.h"
 #include "global.h"
-
-#ifdef CONFIG_LOONGARCH64
+#else
 #include <ns16550a.h>
 #endif
 
+#ifndef CONFIG_LOONGARCH64
 #define va_start(args, first_fix) args = (va_list)&first_fix
 #define va_end(args) args = NULL
+#else
+#define va_start(v, l)	__builtin_va_start(v, l)
+#define va_end(v)	__builtin_va_end(v)
+#endif
 
 /* 供内核使用的格式化输出函数 */
 void printk(const char* format, ...)

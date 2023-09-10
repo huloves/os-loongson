@@ -1,4 +1,5 @@
-// #include "init.h"
+#include "init.h"
+#include "stdio-kernel.h"
 // #include "print.h"
 // #include "interrupt.h"
 // #include "timer.h"
@@ -22,17 +23,17 @@ extern void arch_init_irq(void);
 /*负责初始化所有模块 */
 void init_all()
 {
+	char str[] = "os-loongson";
+	int a = 1, b = 16;
 #ifdef CONFIG_LOONGARCH64
 	serial_ns16550a_init(9600);
 	put_str("hello os-loongson\n");
 #endif
 	put_str("init_all\n");
-#ifndef CONFIG_LOONGARCH64
-	idt_init();	     // 初始化中断
-#else
-	arch_init_irq();
-#endif
+	printk("hello %s-%c%d.%d\n", str, 'v', 0, a);
+	printk("init_all: 0x%x\n", b);
 	while(1);
+	// idt_init();	     // 初始化中断
 	// mem_init();	     // 初始化内存管理系统
 	// thread_init();    // 初始化线程相关结构
 	// timer_init();     // 初始化PIT
