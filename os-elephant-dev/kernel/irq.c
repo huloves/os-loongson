@@ -1,6 +1,7 @@
 #include <loongarch.h>
 #include <stdint.h>
 #include <ns16550a.h>
+#include <stdio-kernel.h>
 
 extern void trap_entry(void);
 
@@ -36,9 +37,8 @@ void trap_handler(void)
 	if (estat & ecfg & (0x1 << 11)) {
 		timer_interrupt();
 	} else if (estat & ecfg) {
-		// printf("estat %x, ecfg %x\n", estat, ecfg);
-		// printf("era=%p eentry=%p\n", read_csr_era(), read_csr_eentry());
-		put_str("other interrupt\n");
+		printk("estat %x, ecfg %x\n", estat, ecfg);
+		printk("era=%p eentry=%p\n", read_csr_era(), read_csr_eentry());
 		while(1);
 	}
 
