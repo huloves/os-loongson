@@ -2,7 +2,11 @@
 #define __KERNEL_INTERRUPT_H
 #include "stdint.h"
 typedef void* intr_handler;
+#ifndef CONFIG_LOONGARCH64
 void idt_init(void);
+#else
+void arch_init_irq(void);
+#endif
 
 /* 定义中断的两种状态:
  * INTR_OFF值为0,表示关中断,

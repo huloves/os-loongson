@@ -2,8 +2,32 @@
 #include <stdint.h>
 #include <ns16550a.h>
 #include <stdio-kernel.h>
+#include "interrupt.h"
+
+#define INTR_NUM	256
+
+intr_handler intr_table[INTR_NUM];
+char *intr_name[INTR_NUM];
 
 extern void trap_entry(void);
+
+static void general_intr_handler(uint8_t vec_nr)
+{
+	printk("!!!!!!!      excetion message begin  !!!!!!!!\n");
+	printk("%s", intr_name[vec_nr]);
+	printk("\n!!!!!!!      excetion message end    !!!!!!!!\n");
+	while(1);
+}
+
+static void exception_init(void)
+{
+	int i;
+
+	for (i = 0; i < INTR_NUM; i++) {
+		intr_name[i] = "unknown";
+		intr_table[i] = general_intr_handler;
+	}
+}
 
 static inline void arch_local_irq_enable(void)
 {
@@ -58,5 +82,7 @@ void arch_init_irq(void)
 
 	write_csr_tcfg(tcfg);
 	write_csr_eentry((unsigned long)trap_entry);
+	
+	exception_init();
 	arch_local_irq_enable();
 }
