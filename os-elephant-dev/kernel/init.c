@@ -14,10 +14,13 @@
 
 #ifdef CONFIG_LOONGARCH64
 #include <ns16550a.h>
+#include <bootinfo.h>
+#include <boot_param.h>
 #endif
 
 #ifdef CONFIG_LOONGARCH64
 extern void arch_init_irq(void);
+extern void parse_fwargs(int a0, char **args, struct bootparamsinterface *a2);
 #endif
 
 /*负责初始化所有模块 */
@@ -25,6 +28,7 @@ void init_all()
 {
 	char str[] = "os-loongson";
 	int a = 1, b = 16;
+	int i;
 #ifdef CONFIG_LOONGARCH64
 	serial_ns16550a_init(9600);
 	put_str("hello os-loongson\n");
@@ -37,6 +41,14 @@ void init_all()
 #else
 	arch_init_irq();
 #endif
+	printk("There is %d args for kernel:\n", fw_arg0);
+	for (i = 0; i < fw_arg0; i++) {
+		printk("cmd arg %d: %s\n", i, ((char **)fw_arg1)[i]);
+	}
+	printk("bpi = %x\n", fw_arg2);
+	printk("efi system table at %x\n", ((struct bootparamsinterface *)fw_arg2)->systemtable);
+    	printk("efi extend list at %x\n", ((struct bootparamsinterface *)fw_arg2)->extlist);
+	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct bootparamsinterface *)fw_arg2);
 	while(1);
 	// mem_init();	     // 初始化内存管理系统
 	// thread_init();    // 初始化线程相关结构
