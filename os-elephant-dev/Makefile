@@ -8,7 +8,8 @@ AFLAGS = -DCONFIG_LOONGARCH64 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib 
 
 OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)/ns16550a.o $(BUILD_DIR)/string.o \
-	$(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/trap_entry.o $(BUILD_DIR)/irq.o
+	$(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/trap_entry.o $(BUILD_DIR)/irq.o $(BUILD_DIR)/ioremap.c \
+	$(BUILD_DIR)/env.o
 
 $(BUILD_DIR)/head.o: boot/loongarch/head.S
 	$(CC) $(AFLAGS) $< -o $@
@@ -35,6 +36,12 @@ $(BUILD_DIR)/trap_entry.o: kernel/trap_entry.S
 	$(CC) $(AFLAGS) $< -o $@
 
 $(BUILD_DIR)/irq.o: kernel/irq.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/ioremap.c: loongarch/ioremap.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/env.o: loongarch/env.c
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/kernel.elf: $(OBJS)

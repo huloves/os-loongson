@@ -136,4 +136,9 @@ static inline void _outl(uint32_t value, unsigned long addr)
 #define outl _outl
 #endif
 
+void *early_ioremap(uint64_t phys_addr, unsigned long size);
+void *early_memremap_ro(uint64_t phys_addr, unsigned long size);
+
+#define early_memremap early_ioremap
+
 #endif /* _IO_H */
