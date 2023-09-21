@@ -1,7 +1,7 @@
 #include "init.h"
 #include "stdio-kernel.h"
 // #include "print.h"
-// #include "interrupt.h"
+#include "interrupt.h"
 // #include "timer.h"
 // #include "memory.h"
 // #include "thread.h"
@@ -36,6 +36,7 @@ void init_all()
 	idt_init();	     // 初始化中断
 #else
 	arch_init_irq();
+	intr_enable();
 #endif
 	while(1);
 	// mem_init();	     // 初始化内存管理系统
