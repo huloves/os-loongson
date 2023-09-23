@@ -84,5 +84,5 @@ void arch_init_irq(void)
 	write_csr_eentry((unsigned long)trap_entry);
 	
 	exception_init();
-	arch_local_irq_enable();
+	// arch_local_irq_enable();
 }
