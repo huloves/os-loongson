@@ -11,4 +11,5 @@ char* strchr(const char* string, const uint8_t ch);
 char* strrchr(const char* string, const uint8_t ch);
 char* strcat(char* dst_, const char* src_);
 uint32_t strchrs(const char* filename, uint8_t ch);
+uint32_t strnlen(const char* str, uint32_t max);
 #endif

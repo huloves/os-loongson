@@ -23,7 +23,11 @@ void printk(const char* format, ...)
 	va_list args;
 	va_start(args, format);
 	char buf[1024] = {0};
+#ifndef CONFIG_LOONGARCH64
 	vsprintf(buf, format, args);
+#else
+	vsnprintf_loongarch(buf, sizeof(buf), format, args);
+#endif
 	va_end(args);
 
 #ifndef CONFIG_LOONGARCH64
