@@ -115,3 +115,12 @@ uint32_t strchrs(const char* str, uint8_t ch) {
    }
    return ch_cnt;
 }
+
+uint32_t strnlen(const char* str, uint32_t max)
+{
+	uint32_t len = strlen(str);
+	if(str == NULL) {
+		while(1);
+	}
+	return len >= max ? max : len;
+}
