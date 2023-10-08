@@ -3,8 +3,8 @@ CROSS_COMPILE = ../toolchains/cross-tools/bin/loongarch64-unknown-linux-gnu-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
-CFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_PAGE_SIZE_16KB -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -c -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/
-AFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_PAGE_SIZE_16KB -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
+CFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -c -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/
+AFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib 
 
 OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)/ns16550a.o $(BUILD_DIR)/string.o \
