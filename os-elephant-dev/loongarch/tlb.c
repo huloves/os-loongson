@@ -7,6 +7,10 @@ pgd_t invalid_pg_dir[2048] __attribute__((__section__(".bss..page_aligned"))) __
 pmd_t invalid_pmd_table[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
 pte_t invalid_pte_table[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
 
+void local_flush_tlb_all(void)
+{
+}
+
 static void setup_ptwalker(void)
 {
 	unsigned long pwctl0, pwctl1;
@@ -35,6 +39,13 @@ static void setup_ptwalker(void)
 	csr_write64(pwctl1, LOONGARCH_CSR_PWCTL1);
 	csr_write64((long)swapper_pg_dir, LOONGARCH_CSR_PGDH);
 	csr_write64((long)invalid_pg_dir, LOONGARCH_CSR_PGDL);
+	csr_write64((long)0, LOONGARCH_CSR_TMID);
+}
+
+void setup_tlb_handler(int cpu)
+{
+	setup_ptwalker();
+
 }
 
 void tlb_init(void)
