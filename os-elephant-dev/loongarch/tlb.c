@@ -1,3 +1,4 @@
+#include <tlb.h>
 #include <loongarch.h>
 #include <stdint.h>
 #include <page.h>
@@ -9,6 +10,7 @@ pte_t invalid_pte_table[2048] __attribute__((__section__(".bss..page_aligned")))
 
 void local_flush_tlb_all(void)
 {
+	invtlb_all(INVTLB_CURRENT_ALL, 0, 0);
 }
 
 static void setup_ptwalker(void)
@@ -45,7 +47,7 @@ static void setup_ptwalker(void)
 void setup_tlb_handler(int cpu)
 {
 	setup_ptwalker();
-
+	local_flush_tlb_all();
 }
 
 void tlb_init(void)

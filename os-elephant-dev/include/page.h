@@ -23,7 +23,12 @@
 #define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE - 1))
 
+#ifdef CONFIG_VA_BITS_40
+#ifdef CONFIG_PAGE_SIZE_4KB
+#define PMD_ORDER	0
 #define PTE_ORDER	0
+#endif
+#endif
 
 #if CONFIG_PGTABLE_LEVELS == 2
 #define PGDIR_SHIFT	(PAGE_SHIFT + PAGE_SHIFT + PTE_ORDER - 3)

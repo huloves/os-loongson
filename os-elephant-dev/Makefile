@@ -3,13 +3,13 @@ CROSS_COMPILE = ../toolchains/cross-tools/bin/loongarch64-unknown-linux-gnu-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
-CFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -c -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/
-AFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
+CFLAGS = -O1 -g -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -c -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/
+AFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib 
 
 OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)/ns16550a.o $(BUILD_DIR)/string.o \
 	$(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/trap_entry.o $(BUILD_DIR)/irq.o $(BUILD_DIR)/ioremap.c \
-	$(BUILD_DIR)/env.o $(BUILD_DIR)/vsprintf.o $(BUILD_DIR)/ctype.o $(BUILD_DIR)/tlb.o
+	$(BUILD_DIR)/env.o $(BUILD_DIR)/vsprintf.o $(BUILD_DIR)/ctype.o $(BUILD_DIR)/tlb.o $(BUILD_DIR)/tlbex.o
 
 $(BUILD_DIR)/head.o: boot/loongarch/head.S
 	$(CC) $(AFLAGS) $< -o $@
@@ -52,6 +52,9 @@ $(BUILD_DIR)/ctype.o: loongarch/ctype.c
 
 $(BUILD_DIR)/tlb.o: loongarch/tlb.c
 	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/tlbex.o: loongarch/tlbex.S
+	$(CC) $(AFLAGS) $< -o $@
 
 $(BUILD_DIR)/kernel.elf: $(OBJS)
 	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
