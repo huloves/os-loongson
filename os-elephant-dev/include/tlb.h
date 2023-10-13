@@ -113,4 +113,6 @@ static inline void invtlb_all(uint32_t op, uint32_t info, uint64_t addr)
 
 void local_flush_tlb_all(void);
 
+void handle_tlb_refill(void);
+
 #endif /* _TLB_H */
