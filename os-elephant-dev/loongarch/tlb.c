@@ -2,11 +2,14 @@
 #include <loongarch.h>
 #include <stdint.h>
 #include <page.h>
+#include <string.h>
 
 pgd_t swapper_pg_dir[2048] __attribute__((__section__(".bss..swapper_pg_dir")));
 pgd_t invalid_pg_dir[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
 pmd_t invalid_pmd_table[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
 pte_t invalid_pte_table[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
+
+unsigned long tlbrentry;
 
 void local_flush_tlb_all(void)
 {
@@ -48,6 +51,8 @@ void setup_tlb_handler(int cpu)
 {
 	setup_ptwalker();
 	local_flush_tlb_all();
+	memcpy((void *)tlbrentry, handle_tlb_refill, 0x80);
+	local_flush_icache_range(tlbrentry, tlbrentry + 0x80);
 }
 
 void tlb_init(void)
