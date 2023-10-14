@@ -1,10 +1,10 @@
 #include <loongarch.h>
 #include <regdef.h>
+#include <linkage.h>
 
 	.align 12
 
-.global handle_tlb_refill
-handle_tlb_refill:
+SYM_FUNC_START(handle_tlb_refill)
 	csrwr		t0, LOONGARCH_CSR_TLBRSAVE
 	csrrd		t0, LOONGARCH_CSR_PGD
 	lddir		t0, t0, 3
@@ -19,3 +19,4 @@ handle_tlb_refill:
 	tlbfill
 	csrrd		t0, LOONGARCH_CSR_TLBRSAVE
 	ertn
+SYM_FUNC_END(handle_tlb_refill)

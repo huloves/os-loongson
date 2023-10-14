@@ -21,6 +21,7 @@
 #ifdef CONFIG_LOONGARCH64
 extern void arch_init_irq(void);
 extern void parse_fwargs(int a0, char **args, struct bootparamsinterface *a2);
+extern void setup_arch(void);
 #endif
 
 /*负责初始化所有模块 */
@@ -49,6 +50,7 @@ void init_all()
 	printk("efi system table at %x\n", ((struct bootparamsinterface *)fw_arg2)->systemtable);
     	printk("efi extend list at %x\n", ((struct bootparamsinterface *)fw_arg2)->extlist);
 	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct bootparamsinterface *)fw_arg2);
+	setup_arch();
 	while(1);
 	// mem_init();	     // 初始化内存管理系统
 	// thread_init();    // 初始化线程相关结构
