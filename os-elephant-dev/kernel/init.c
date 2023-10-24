@@ -42,7 +42,6 @@ void init_all()
 #else
 	arch_init_irq();
 	intr_enable();
-#endif
 	printk("There is %d args for kernel:\n", fw_arg0);
 	for (i = 0; i < fw_arg0; i++) {
 		printk("cmd arg %d: %s\n", i, ((char **)fw_arg1)[i]);
@@ -52,6 +51,7 @@ void init_all()
     	printk("efi extend list at %x\n", ((struct bootparamsinterface *)fw_arg2)->extlist);
 	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct bootparamsinterface *)fw_arg2);
 	setup_arch();
+#endif
 	while(1);
 	// mem_init();	     // 初始化内存管理系统
 	// thread_init();    // 初始化线程相关结构
