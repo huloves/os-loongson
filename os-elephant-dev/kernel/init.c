@@ -19,7 +19,7 @@
 #endif
 
 #ifdef CONFIG_LOONGARCH64
-extern void arch_init_irq(void);
+extern void irq_init(void);
 extern void parse_fwargs(int a0, char **args, struct bootparamsinterface *a2);
 extern void setup_arch(void);
 extern void trap_init(void);
@@ -41,7 +41,6 @@ void init_all()
 #ifndef CONFIG_LOONGARCH64
 	idt_init();	     // 初始化中断
 #else
-	// arch_init_irq();
 	printk("There is %d args for kernel:\n", fw_arg0);
 	for (i = 0; i < fw_arg0; i++) {
 		printk("cmd arg %d: %s\n", i, ((char **)fw_arg1)[i]);
@@ -52,6 +51,7 @@ void init_all()
 	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct bootparamsinterface *)fw_arg2);
 	setup_arch();
 	trap_init();
+	irq_init();
 	intr_enable();
 #endif
 	while(1);

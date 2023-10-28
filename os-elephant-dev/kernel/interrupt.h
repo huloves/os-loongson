@@ -1,11 +1,14 @@
 #ifndef __KERNEL_INTERRUPT_H
 #define __KERNEL_INTERRUPT_H
 #include "stdint.h"
-typedef void (*intr_handler)(uint8_t vec_nr);
+
 #ifndef CONFIG_LOONGARCH64
+typedef void* intr_handler;
 void idt_init(void);
 #else
-void arch_init_irq(void);
+#include <pt_regs.h>
+typedef void (*intr_handler)(struct pt_regs *regs);
+void irq_init(void);
 #endif
 
 /* 定义中断的两种状态:

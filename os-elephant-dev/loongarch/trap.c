@@ -5,8 +5,8 @@
 #include <stdio-kernel.h>
 #include <string.h>
 
-// extern void handle_vint(void);
 extern void *vector_table[];
+extern void do_irq(struct pt_regs *regs, uint64_t virq);
 
 /**
  * fls - find last (most-significant) bit set
@@ -49,30 +49,34 @@ static inline void setup_vint_size(unsigned int size)
 		while(1);
 	}
 
-	printk("@@@@@: vs = %d\n", vs);
-
 	/**
 	 * 设置例外与中断处理程序的间距为2^vs条指令
 	 */
 	csr_xchg32(vs << CSR_ECFG_VS_SHIFT, CSR_ECFG_VS, LOONGARCH_CSR_ECFG);
 }
 
-void timer_interrupt(uint8_t vec_nr)
+/**
+ * hwirq_to_virq - 硬件中断号转换为虚拟中断号
+ * @hwirq: 硬件中断号
+ */
+static unsigned long hwirq_to_virq(unsigned long hwirq)
 {
-	printk("intr_table[%d]: timer interrupt\n", vec_nr);
-	/* ack */
-	write_csr_ticlr(read_csr_ticlr() | (0x1 << 0));
+	return EXCCODE_INT_START + hwirq;
 }
 
+/**
+ * do_vint - 中断处理入口程序（C语言部分）
+ * @regs: 指向中断栈内容
+ * @sp: 中断栈指针
+ * regs == sp
+ */
 void do_vint(struct pt_regs *regs, unsigned long sp)
 {
-	// register int cpu;
-	// register unsigned long stack;
 	unsigned long hwirq = *(unsigned long *)regs;
+	unsigned long virq;
 
-	if (hwirq == 11) {
-		timer_interrupt(hwirq);
-	}
+	virq = hwirq_to_virq(hwirq);
+	do_irq(regs, virq);
 }
 
 #define SZ_64K		0x00010000
@@ -142,7 +146,14 @@ void trap_init(void)
 {
 	unsigned long i;
 	void *vector_start;
-	unsigned long tcfg = 0x10000000UL | (1U << 0) | (1U << 1);
+	unsigned long tcfg = 0x01000000UL | (1U << 0) | (1U << 1);
+	unsigned long ecfg;
+
+	/**
+	 * 清空中断状态
+	 */
+	clear_csr_ecfg(ECFG0_IM);
+	clear_csr_estat(ESTATF_IP);
 
 	/**
 	 * 初始化中断处理入口程序
@@ -154,8 +165,7 @@ void trap_init(void)
 
 	local_flush_icache_range(eentry, eentry + 0x400);
 
-	/**
-	 * 临时配置时钟
-	 */
 	write_csr_tcfg(tcfg);
+	ecfg = read_csr_ecfg();
+	change_csr_ecfg(CSR_ECFG_IM, ecfg | 0x1 << 11);
 }

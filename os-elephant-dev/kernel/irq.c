@@ -9,13 +9,13 @@
 intr_handler intr_table[INTR_NUM];
 char *intr_name[INTR_NUM];
 
-extern void trap_entry(void);
-
-static void general_intr_handler(uint8_t vec_nr)
+static void general_intr_handler(struct pt_regs *regs)
 {
-	printk("!!!!!!!      excetion message begin  !!!!!!!!\n");
-	printk("intr_table[%d]: %s happened", intr_name[vec_nr]);
-	printk("\n!!!!!!!      excetion message end    !!!!!!!!\n");
+	unsigned long hwirq = *(unsigned long *)regs;
+	unsigned long virq = EXCCODE_INT_START + hwirq;
+	printk("!!!!!!!      exception message begin  !!!!!!!!\n");
+	printk("intr_table[%d]: %s happened", intr_name[virq]);
+	printk("\n!!!!!!!      exception message end    !!!!!!!!\n");
 	while(1);
 }
 
@@ -99,56 +99,23 @@ void register_handler(uint8_t vector_no, intr_handler function)
 	intr_table[vector_no] = function;
 }
 
-void do_irq(uint64_t irq)
+void do_irq(struct pt_regs *regs, uint64_t virq)
 {
-	intr_table[irq](irq);
+	// printk("virq = %d ", virq);
+	intr_table[virq](regs);
 }
 
-void trap_handler(void)
+void timer_interrupt(struct pt_regs *regs)
 {
-	unsigned int estat = read_csr_estat();
-	unsigned int ecfg = read_csr_ecfg();
-	unsigned long era = read_csr_era();
-	unsigned long prmd = read_csr_prmd();
-	unsigned long irq;
-
-	if((prmd & CSR_PRMD_PPLV) != 0)
-		put_str("kerneltrap: not from privilege0");
-	if(intr_get() != 0)
-		put_str("kerneltrap: interrupts enabled");
-
-	if (estat & ecfg & (0x1 << 11)) {
-		irq = 64 + 11;
-		// timer_interrupt();
-	} else if (estat & ecfg) {
-		printk("estat %x, ecfg %x\n", estat, ecfg);
-		printk("era=%p eentry=%p\n", read_csr_era(), read_csr_eentry());
-		while(1);
-	}
-
-	do_irq(irq);
-
-	write_csr_era(era);
-	write_csr_prmd(prmd);
+	printk("timer interrupt\n");
+	/* ack */
+	write_csr_ticlr(read_csr_ticlr() | (0x1 << 0));
 }
-
-// void timer_interrupt(uint8_t vec_nr)
-// {
-// 	printk("intr_table[%d]: timer interrupt\n", vec_nr);
-// 	/* ack */
-// 	write_csr_ticlr(read_csr_ticlr() | (0x1 << 0));
-// }
 
 void irq_init(void)
 {
-        unsigned long tcfg = 0x10000000UL | (1U << 0) | (1U << 1);
-
-        clear_csr_ecfg(ECFG0_IM);
-	clear_csr_estat(ESTATF_IP);
-
 	exception_init();
-	// register_handler(64 + 11, timer_interrupt);
-	write_csr_tcfg(tcfg);
+	register_handler(EXCCODE_TIMER, timer_interrupt);
 
-	printk("arch_init_irq done\n");
+	printk("irq_init done\n");
 }
