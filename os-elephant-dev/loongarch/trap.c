@@ -1,8 +1,12 @@
 #include <setup.h>
 #include <loongarch.h>
+#include <pt_regs.h>
 #include <cacheflush.h>
 #include <stdio-kernel.h>
 #include <string.h>
+
+// extern void handle_vint(void);
+extern void *vector_table[];
 
 /**
  * fls - find last (most-significant) bit set
@@ -51,6 +55,24 @@ static inline void setup_vint_size(unsigned int size)
 	 * 设置例外与中断处理程序的间距为2^vs条指令
 	 */
 	csr_xchg32(vs << CSR_ECFG_VS_SHIFT, CSR_ECFG_VS, LOONGARCH_CSR_ECFG);
+}
+
+void timer_interrupt(uint8_t vec_nr)
+{
+	printk("intr_table[%d]: timer interrupt\n", vec_nr);
+	/* ack */
+	write_csr_ticlr(read_csr_ticlr() | (0x1 << 0));
+}
+
+void do_vint(struct pt_regs *regs, unsigned long sp)
+{
+	// register int cpu;
+	// register unsigned long stack;
+	unsigned long hwirq = *(unsigned long *)regs;
+
+	if (hwirq == 11) {
+		timer_interrupt(hwirq);
+	}
 }
 
 #define SZ_64K		0x00010000
@@ -111,4 +133,29 @@ void set_handler(unsigned long offset, void *addr, unsigned long size)
 {
 	memcpy((void *)eentry + offset, addr, size);
 	local_flush_icache_range(eentry + offset, eentry + offset + size);
+}
+
+/**
+ * trap_init - 例外与中断处理初始化
+ */
+void trap_init(void)
+{
+	unsigned long i;
+	void *vector_start;
+	unsigned long tcfg = 0x10000000UL | (1U << 0) | (1U << 1);
+
+	/**
+	 * 初始化中断处理入口程序
+	 */
+	for (i = EXCCODE_INT_START; i < EXCCODE_INT_END; i++) {
+		vector_start = vector_table[i - EXCCODE_INT_START];
+		set_handler(i * VECSIZE, vector_start, VECSIZE);
+	}
+
+	local_flush_icache_range(eentry, eentry + 0x400);
+
+	/**
+	 * 临时配置时钟
+	 */
+	write_csr_tcfg(tcfg);
 }

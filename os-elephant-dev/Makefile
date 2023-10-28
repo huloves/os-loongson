@@ -8,7 +8,7 @@ AFLAGS = -g -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCO
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib 
 
 OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)/ns16550a.o $(BUILD_DIR)/string.o \
-	$(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/trap_entry.o $(BUILD_DIR)/irq.o $(BUILD_DIR)/ioremap.c \
+	$(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/irq.o $(BUILD_DIR)/ioremap.c \
 	$(BUILD_DIR)/env.o $(BUILD_DIR)/vsprintf.o $(BUILD_DIR)/ctype.o $(BUILD_DIR)/tlb.o $(BUILD_DIR)/tlbex.o \
 	$(BUILD_DIR)/cache.o $(BUILD_DIR)/trap.o $(BUILD_DIR)/genex.o
 
@@ -32,9 +32,6 @@ $(BUILD_DIR)/stdio.o: lib/stdio.c
 
 $(BUILD_DIR)/stdio-kernel.o: lib/kernel/stdio-kernel.c
 	$(CC) $(CFLAGS) $< -o $@
-
-$(BUILD_DIR)/trap_entry.o: kernel/trap_entry.S
-	$(CC) $(AFLAGS) $< -o $@
 
 $(BUILD_DIR)/irq.o: kernel/irq.c
 	$(CC) $(CFLAGS) $< -o $@

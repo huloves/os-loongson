@@ -22,6 +22,7 @@
 extern void arch_init_irq(void);
 extern void parse_fwargs(int a0, char **args, struct bootparamsinterface *a2);
 extern void setup_arch(void);
+extern void trap_init(void);
 #endif
 
 /*负责初始化所有模块 */
@@ -40,8 +41,7 @@ void init_all()
 #ifndef CONFIG_LOONGARCH64
 	idt_init();	     // 初始化中断
 #else
-	arch_init_irq();
-	intr_enable();
+	// arch_init_irq();
 	printk("There is %d args for kernel:\n", fw_arg0);
 	for (i = 0; i < fw_arg0; i++) {
 		printk("cmd arg %d: %s\n", i, ((char **)fw_arg1)[i]);
@@ -51,6 +51,8 @@ void init_all()
     	printk("efi extend list at %x\n", ((struct bootparamsinterface *)fw_arg2)->extlist);
 	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct bootparamsinterface *)fw_arg2);
 	setup_arch();
+	trap_init();
+	intr_enable();
 #endif
 	while(1);
 	// mem_init();	     // 初始化内存管理系统

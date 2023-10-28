@@ -7,6 +7,8 @@
  * regoffset_table[] in arch/loongarch/kernel/ptrace.c.
  */
 struct pt_regs {
+	/* hardware irq number */
+	unsigned long hwirq;
 	/* Main processor registers. */
 	unsigned long regs[32];
 

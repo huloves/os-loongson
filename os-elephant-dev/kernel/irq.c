@@ -132,28 +132,23 @@ void trap_handler(void)
 	write_csr_prmd(prmd);
 }
 
-void timer_interrupt(uint8_t vec_nr)
-{
-	printk("intr_table[%d]: timer interrupt\n", vec_nr);
-	/* ack */
-	write_csr_ticlr(read_csr_ticlr() | (0x1 << 0));
-}
+// void timer_interrupt(uint8_t vec_nr)
+// {
+// 	printk("intr_table[%d]: timer interrupt\n", vec_nr);
+// 	/* ack */
+// 	write_csr_ticlr(read_csr_ticlr() | (0x1 << 0));
+// }
 
-void arch_init_irq(void)
+void irq_init(void)
 {
-        unsigned int ecfg = ( 0U << CSR_ECFG_VS_SHIFT ) | 0x3fcU | (0x1 << 11);
         unsigned long tcfg = 0x10000000UL | (1U << 0) | (1U << 1);
 
         clear_csr_ecfg(ECFG0_IM);
 	clear_csr_estat(ESTATF_IP);
 
-	write_csr_ecfg(ecfg);
-	write_csr_eentry((unsigned long)trap_entry);
-
-	write_csr_tcfg(tcfg);
-
 	exception_init();
-	register_handler(64 + 11, timer_interrupt);
+	// register_handler(64 + 11, timer_interrupt);
+	write_csr_tcfg(tcfg);
 
 	printk("arch_init_irq done\n");
 }
