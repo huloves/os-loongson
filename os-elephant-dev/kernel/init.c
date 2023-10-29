@@ -13,11 +13,12 @@
 // #include "fs.h"
 
 #ifdef CONFIG_LOONGARCH64
+#include <setup.h>
 #include <ns16550a.h>
 #endif
 
 #ifdef CONFIG_LOONGARCH64
-extern void arch_init_irq(void);
+extern void irq_init(void);
 #endif
 
 /*负责初始化所有模块 */
@@ -35,7 +36,9 @@ void init_all()
 #ifndef CONFIG_LOONGARCH64
 	idt_init();	     // 初始化中断
 #else
-	arch_init_irq();
+	setup_arch();
+	trap_init();
+	irq_init();
 	intr_enable();
 #endif
 	while(1);
