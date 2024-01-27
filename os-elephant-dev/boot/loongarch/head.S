@@ -1,6 +1,7 @@
 #include <regdef.h>
 #include <loongarch.h>
 #include <bootinfo.h>
+#include <stackframe.h>
 
 .section ".head.text","ax"
 
@@ -12,16 +13,20 @@ kernel_entry:
 	 * 配置直接映射窗口
 	 * 设置CRMD.PG位
 	 */
+	li.d		t0, CSR_DMW0_INIT	# UC, PLV0, 0x8000 xxxx xxxx xxxx
+	csrwr		t0, LOONGARCH_CSR_DMWIN0
 	li.d		t0, CSR_DMW1_INIT	# 一致可缓存（Coherent Cached，CA）存储访问类型，PLV0下可以使用该窗口的配置进行直接映射地址翻译，地址窗口为0x9000 xxxx xxxx xxxx
 	csrwr		t0, LOONGARCH_CSR_DMWIN1
 
 	/* Enable PG */
-	li.w		t0, 0xb0		# 1011 0000, PLV=0, IE=0, PG=1, DATF=1
+	li.w		t0, 0xa8		# 1011 0000, PLV=0, IE=0, PG=1, DATF=1
 	csrwr		t0, LOONGARCH_CSR_CRMD
 	li.w		t0, 0x04		# 0000 0100, PLV=0, PIE=1, PWE=0
 	csrwr		t0, LOONGARCH_CSR_PRMD
 	li.w		t0, 0x00		# 0000 0000, FPE=0, SXE=0, ASXE=0, BTE=0, 不使用扩展
 	csrwr		t0, LOONGARCH_CSR_EUEN
+
+	JUMP_VIRT_ADDR	t0, t1
 
 	la.pcrel	t0, __bss_start		# 清空.bss段
 	st.d		zero, t0, 0

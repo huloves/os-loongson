@@ -14,7 +14,7 @@ static void general_intr_handler(struct pt_regs *regs)
 	unsigned long hwirq = *(unsigned long *)regs;
 	unsigned long virq = EXCCODE_INT_START + hwirq;
 	printk("!!!!!!!      exception message begin  !!!!!!!!\n");
-	printk("intr_table[%d]: %s happened", intr_name[virq]);
+	printk("intr_table[%x]: %s happened", virq, intr_name[virq]);
 	printk("\n!!!!!!!      exception message end    !!!!!!!!\n");
 	while(1);
 }

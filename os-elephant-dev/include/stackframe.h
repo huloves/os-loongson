@@ -2,6 +2,7 @@
 #define _STACKFRAME_H
 
 #include <loongarch.h>
+#include <addrspace.h>
 #include <regdef.h>
 #include <asm.h>
 #include <asm-offsets.h>
@@ -27,6 +28,14 @@
 	.macro cfi_ld reg offset=0 docfi=0
 	LONG_L	\reg, sp, \offset
 	cfi_restore \reg \offset \docfi
+	.endm
+
+	/* Jump to the runtime virtual address. */
+	.macro JUMP_VIRT_ADDR temp1 temp2
+	li.d	\temp1, CACHE_BASE
+	pcaddi	\temp2, 0
+	or	\temp1, \temp1, \temp2
+	jirl	zero, \temp1, 0xc
 	.endm
 
 	.macro BACKUP_T0T1

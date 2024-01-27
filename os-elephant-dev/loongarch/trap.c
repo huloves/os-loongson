@@ -8,6 +8,12 @@
 extern void *vector_table[];
 extern void do_irq(struct pt_regs *regs, uint64_t virq);
 
+void handle_reserved(void)
+{
+	printk("have a exception happened\n");
+	while (1) ;
+}
+
 /**
  * fls - find last (most-significant) bit set
  * @x: the word to search
@@ -116,6 +122,7 @@ static void configure_exception_vector(void)
 
 void per_cpu_trap_init(int cpu)
 {
+	unsigned int i;
 	/**
 	 * 设置例外与中断处理程序的间距
 	 */
@@ -124,6 +131,15 @@ void per_cpu_trap_init(int cpu)
 	 * 配置例外与中断处理程序入口
 	 */
 	configure_exception_vector();
+
+	/**
+	 * 初始化例外处理程序
+	 */
+	if (cpu == 0)
+		for (i = 0; i < 64; i++)
+			set_handler(i * VECSIZE, handle_reserved, VECSIZE);
+
+	tlb_init(cpu);
 }
 
 /**

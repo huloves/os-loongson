@@ -2,6 +2,22 @@
 #define _ASM_H
 
 /*
+ * Use the following macros in assemblercode to load/store registers,
+ * pointers etc.
+ */
+#if (SZREG == 4)
+#define REG_L		ld.w
+#define REG_S		st.w
+#define REG_ADD		add.w
+#define REG_SUB		sub.w
+#else /* SZREG == 8 */
+#define REG_L		ld.d
+#define REG_S		st.d
+#define REG_ADD		add.d
+#define REG_SUB		sub.d
+#endif
+
+/*
  * How to add/sub/load/store/shift C int variables.
  */
 #if (__SIZEOF_INT__ == 4)

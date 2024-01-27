@@ -3,13 +3,15 @@
 #include <loongarch.h>
 #include <stdint.h>
 #include <page.h>
+#include <pgtable-bits.h>
+#include <setup.h>
 #include <string.h>
 #include <stdio-kernel.h>
 
-pgd_t swapper_pg_dir[2048] __attribute__((__section__(".bss..swapper_pg_dir")));
-pgd_t invalid_pg_dir[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
-pmd_t invalid_pmd_table[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
-pte_t invalid_pte_table[2048] __attribute__((__section__(".bss..page_aligned"))) __attribute__((aligned(PAGE_SIZE)));
+pgd_t swapper_pg_dir[PTRS_PER_PGD] __attribute__((__section__(".bss"))) __attribute__((aligned(1 << 16)));
+pgd_t invalid_pg_dir[PTRS_PER_PGD] __attribute__((__section__(".bss"))) __attribute__((aligned(1 << 12)));
+pmd_t invalid_pmd_table[PTRS_PER_PMD] __attribute__((__section__(".bss"))) __attribute__((aligned(1 << 12)));
+pte_t invalid_pte_table[PTRS_PER_PTE] __attribute__((__section__(".bss"))) __attribute__((aligned(1 << 12)));
 
 extern unsigned long tlbrentry;
 
@@ -49,14 +51,42 @@ static void setup_ptwalker(void)
 	csr_write64((long)0, LOONGARCH_CSR_TMID);
 }
 
+static void output_pgtable_bits_defines(void)
+{
+#define pr_define(fmt, ...)					\
+	printk("[DEBUG] #define " fmt, ##__VA_ARGS__)
+	
+	pr_define("_PAGE_VALID_SHIFT %d\n", _PAGE_VALID_SHIFT);
+	pr_define("_PAGE_DIRTY_SHIFT %d\n", _PAGE_DIRTY_SHIFT);
+	pr_define("_PAGE_HUGE_SHIFT %d\n", _PAGE_HUGE_SHIFT);
+	pr_define("_PAGE_GLOBAL_SHIFT %d\n", _PAGE_GLOBAL_SHIFT);
+	pr_define("_PAGE_PRESENT_SHIFT %d\n", _PAGE_PRESENT_SHIFT);
+	pr_define("_PAGE_WRITE_SHIFT %d\n", _PAGE_WRITE_SHIFT);
+	pr_define("_PAGE_NO_READ_SHIFT %d\n", _PAGE_NO_READ_SHIFT);
+	pr_define("_PAGE_NO_EXEC_SHIFT %d\n", _PAGE_NO_EXEC_SHIFT);
+	printk("\n");
+}
+
 void setup_tlb_handler(int cpu)
 {
 	setup_ptwalker();
-	local_flush_tlb_all();
+
+	printk("@@@@@: ptr = %p\n", setup_tlb_handler);
 
 	if (cpu == 0) {
 		memcpy((void *)tlbrentry, handle_tlb_refill, 0x80);
 		local_flush_icache_range(tlbrentry, tlbrentry + 0x80);
+		/* 设置tlb例外处理程序 */
+		set_handler(EXCCODE_TLBI * VECSIZE, handle_tlb_load, VECSIZE);
+		set_handler(EXCCODE_TLBL * VECSIZE, handle_tlb_load, VECSIZE);
+		set_handler(EXCCODE_TLBS * VECSIZE, handle_tlb_store, VECSIZE);
+		set_handler(EXCCODE_TLBM * VECSIZE, handle_tlb_modify, VECSIZE);
+		set_handler(EXCCODE_TLBNR * VECSIZE, handle_tlb_protect, VECSIZE);
+		set_handler(EXCCODE_TLBNX * VECSIZE, handle_tlb_protect, VECSIZE);
+		set_handler(EXCCODE_TLBPE * VECSIZE, handle_tlb_protect, VECSIZE);
+
+		/* 初始swapper_pg_dir，初始化后重填例外可以工作 */
+		pagetable_init();
 	}
 }
 
@@ -79,4 +109,20 @@ void tlb_init(int cpu)
 		printk("BUG: MMU doesn't support PAGE_SIZE=0x%lx\n", PAGE_SIZE);
 		while(1);
 	}
+
+	/**
+	 * 设置PGD地址
+	 */
+	setup_tlb_handler(cpu);
+	output_pgtable_bits_defines();
+
+	/**
+	 * 无效化tlb
+	 */
+	local_flush_tlb_all();
+}
+
+void test_tlb(void)
+{
+	printk("@@@@@: test_tlb\n");
 }

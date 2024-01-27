@@ -23,6 +23,11 @@
 #define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE - 1))
 
+#define HPAGE_SHIFT	(PAGE_SHIFT + PAGE_SHIFT - 3)
+#define HPAGE_SIZE	(_AC(1, UL) << HPAGE_SHIFT)
+#define HPAGE_MASK	(~(HPAGE_SIZE - 1))
+#define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+
 #ifdef CONFIG_VA_BITS_40
 #ifdef CONFIG_PAGE_SIZE_4KB
 #define PMD_ORDER	0
@@ -47,6 +52,17 @@
 #define PGDIR_SHIFT	(PUD_SHIFT + (PAGE_SHIFT + PUD_ORDER - 3))
 #endif
 
+#define PTRS_PER_PGD	(PAGE_SIZE >> 3)
+#if CONFIG_PGTABLE_LEVELS > 3
+#define PTRS_PER_PUD	(PAGE_SIZE >> 3)
+#endif
+#if CONFIG_PGTABLE_LEVELS > 2
+#define PTRS_PER_PMD	(PAGE_SIZE >> 3)
+#endif
+#define PTRS_PER_PTE	(PAGE_SIZE >> 3)
+
+#ifndef __ASSEMBLY__
+
 /*
  * These are used to make use of C type-checking..
  */
@@ -69,5 +85,14 @@ typedef struct { unsigned long pgd; } pgd_t;
 typedef struct { unsigned long pmd; } pmd_t;
 #define pmd_val(x)	((x).pmd)
 #define __pmd(x)	((pmd_t) { (x) } )
+
+extern pgd_t swapper_pg_dir[];
+extern pgd_t invalid_pg_dir[];
+extern pmd_t invalid_pmd_table[];
+extern pte_t invalid_pte_table[];
+
+void pagetable_init(void);
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* _PAGE_H */
