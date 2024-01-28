@@ -9,6 +9,8 @@
 extern unsigned long fw_arg0, fw_arg1, fw_arg2;
 extern unsigned long kernelsp;
 
+void init_environ(void);
+
 union thread_union {
 	unsigned long stack[KERNEL_STACK_SIZE / sizeof(unsigned long)];
 };

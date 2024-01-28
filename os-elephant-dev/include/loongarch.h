@@ -176,159 +176,150 @@
 #ifndef __ASSEMBLY__
 
 /* CSR */
-#define csr_read32(reg) \
-({ \
-	unsigned int val; \
-	asm volatile ( \
-		"csrrd %[val_temp], %[reg_temp] \n\t" \
-		: [val_temp] "=r" (val) \
-		: [reg_temp] "i" (reg) \
-		: "memory"); \
-	val; \
-})
+static inline unsigned int csr_read32(unsigned int reg)
+{
+	unsigned int val;
+	asm volatile (
+		"csrrd %[val], %[reg] \n\t"
+		: [val] "=r" (val)
+		: [reg] "i" (reg)
+		: "memory");
+	return val;
+}
 
-#define csr_read64(reg) \
-({ \
-	unsigned long val; \
-	asm volatile ( \
-		"csrrd %[val_temp], %[reg_temp] \n\t" \
-		: [val_temp] "=r" (val) \
-		: [reg_temp] "i" (reg) \
-		: "memory"); \
-	val; \
-})
+static inline unsigned long csr_read64(unsigned int reg)
+{
+	unsigned long val;
+	asm volatile (
+		"csrrd %[val], %[reg] \n\t"
+		: [val] "=r" (val)
+		: [reg] "i" (reg)
+		: "memory");
+	return val;
+}
 
-#define csr_write32(val, reg) \
-({ \
-	unsigned int _val = val; \
-	asm volatile ( \
-		"csrwr %[val_temp], %[reg_temp] \n\t" \
-		: [val_temp] "+r" (_val) \
-		: [reg_temp] "i" (reg) \
-		: "memory"); \
-})
+static inline void csr_write32(unsigned int val, unsigned int reg)
+{
+	asm volatile (
+		"csrwr %[val], %[reg] \n\t"
+		: [val] "+r" (val)
+		: [reg] "i" (reg)
+		: "memory");
+}
 
-#define csr_write64(val, reg) \
-({ \
-	unsigned long _val = val; \
-	asm volatile ( \
-		"csrwr %[val_temp], %[reg_temp] \n\t" \
-		: [val_temp] "+r" (_val) \
-		: [reg_temp] "i" (reg) \
-		: "memory"); \
-})
+static inline void csr_write64(unsigned long val, unsigned int reg)
+{
+	asm volatile (
+		"csrwr %[val], %[reg] \n\t"
+		: [val] "+r" (val)
+		: [reg] "i" (reg)
+		: "memory");
+}
 
-#define csr_xchg32(val, mask, reg) \
-({ \
-	unsigned int _val = val, _mask = mask; \
-	__asm__ __volatile__ ( \
-		"csrxchg %[val_temp], %[mask_temp], %[reg_temp] \n\t" \
-		: [val_temp] "+r" (_val) \
-		: [mask_temp] "r" (_mask), [reg_temp] "i" (reg) \
-		: "memory"); \
-	_val; \
-})
+static inline unsigned int csr_xchg32(unsigned int val, unsigned int mask, unsigned int reg)
+{
+	asm volatile (
+		"csrxchg %[val], %[mask], %[reg] \n\t"
+		: [val] "+r" (val)
+		: [mask] "r" (mask), [reg] "i" (reg)
+		: "memory");
+	return val;
+}
 
-#define csr_xchg64(val, mask, reg) \
-({ \
-	unsigned long _val = val, _mask = mask; \
-	asm volatile ( \
-		"csrxchg %[val_temp], %[mask_temp], %[reg_temp] \n\t" \
-		: [val_temp] "+r" (_val) \
-		: [mask_temp] "r" (_mask), [reg_temp] "i" (reg) \
-		: "memory"); \
-	_val; \
-})
+static inline unsigned long csr_xchg64(unsigned long val, unsigned long mask, unsigned int reg)
+{
+	asm volatile (
+		"csrxchg %[val], %[mask], %[reg] \n\t"
+		: [val] "+r" (val)
+		: [mask] "r" (mask), [reg] "i" (reg)
+		: "memory");
+	return val;
+}
 
 /* GCSR */
-#define gcsr_read(reg) \
-({ \
-	unsigned long val = 0; \
-	asm volatile ( \
-	"parse_r __reg, %[val_temp]	\n\t" \
-	".word 0x5 << 24 | %[reg_temp] << 10 | 0 << 5 | __reg	\n\t" \
-	: [val_temp] "+r" (val) \
-	: [reg_temp] "i" (reg) \
-	: "memory"); \
-	val; \
-})
+static inline unsigned long gcsr_read(unsigned int reg)
+{
+	unsigned long val = 0;
+	asm volatile (
+	"parse_r __reg, %[val]	\n\t"
+	".word 0x5 << 24 | %[reg] << 10 | 0 << 5 | __reg	\n\t"
+	: [val] "+r" (val)
+	: [reg] "i" (reg)
+	: "memory");
+	return val;
+}
 
-#define gcsr_write(val, reg) \
-({ \
-	unsigned long _val = val; \
-	asm volatile ( \
-	"parse_r __reg, %[val_temp]	\n\t" \
-	".word 0x5 << 24 | %[reg_temp] << 10 | 1 << 5 | __reg	\n\t" \
-	: [val_temp] "+r" (_val) \
-	: [reg_temp] "i" (reg) \
-	: "memory"); \
-})
+static inline void gcsr_write(unsigned long val, unsigned int reg)
+{
+	asm volatile (
+	"parse_r __reg, %[val]	\n\t"
+	".word 0x5 << 24 | %[reg] << 10 | 1 << 5 | __reg	\n\t"
+	: [val] "+r" (val)
+	: [reg] "i" (reg)
+	: "memory");
+}
 
-#define gcsr_xchg(val, mask, reg) \
-({ \
-	unsigned long _val = val, _mask = mask; \
-	asm volatile ( \
-	"parse_r __rd, %[val_temp]	\n\t" \
-	"parse_r __rj, %[mask_temp]	\n\t" \
-	".word 0x5 << 24 | %[reg_temp] << 10 | __rj << 5 | __rd	\n\t" \
-	: [val_temp] "+r" (_val) \
-	: [mask_temp] "r" (_mask), [reg] "i" (reg) \
-	: "memory"); \
-	_val; \
-})
+static inline unsigned long gcsr_xchg(unsigned long val, unsigned long mask, unsigned int reg)
+{
+	asm volatile (
+	"parse_r __rd, %[val]	\n\t"
+	"parse_r __rj, %[mask]	\n\t"
+	".word 0x5 << 24 | %[reg] << 10 | __rj << 5 | __rd	\n\t"
+	: [val] "+r" (val)
+	: [mask] "r" (mask), [reg] "i" (reg)
+	: "memory");
+	return val;
+}
 
 /* IOCSR */
-#define iocsr_read32(reg) \
-({ \
-	unsigned int val; \
-	asm volatile ( \
-		"iocsrrd.w %[val_temp], %[reg_temp] \n\t" \
-		: [val_temp] "=r" (val) \
-		: [reg_temp] "r" (reg) \
-		: "memory"); \
-	return val; \
-})
+static inline unsigned long iocsr_read32(unsigned long reg)
+{
+	unsigned long val;
+	asm volatile (
+		"iocsrrd.w %[val], %[reg] \n\t"
+		: [val] "=r" (val)
+		: [reg] "r" (reg)
+		: "memory");
+	return val;
+}
 
-#define iocsr_read64(reg) \
-({ \
-	unsigned long val; \
-	asm volatile ( \
-		"iocsrrd.d %[val_temp], %[reg_temp] \n\t" \
-		: [val_temp] "=r" (val) \
-		: [reg_temp] "r" (reg) \
-		: "memory"); \
-	val; \
-})
+static inline unsigned long iocsr_read64(unsigned long reg)
+{
+	unsigned long val;
+	asm volatile (
+		"iocsrrd.d %[val], %[reg] \n\t"
+		: [val] "=r" (val)
+		: [reg] "r" (reg)
+		: "memory");
+	return val;
+}
 
-#define iocsr_write8(val, reg) \
-({ \
-	unsigned char _val = val; \
-	asm volatile ( \
-		"iocsrwr.b %[val_temp], %[reg_temp] \n\t" \
-		: \
-		: [val_temp] "r" (_val), [reg_temp] "r" (reg) \
-		: "memory"); \
-})
+static inline void iocsr_write8(unsigned char val, unsigned int reg)
+{
+	asm volatile (
+		"iocsrwr.b %[val], %[reg] \n\t"
+		:
+		: [val] "r" (val), [reg] "r" (reg)
+		: "memory");
+}
 
-#define iocsr_write32(val, reg) \
-({ \
-	unsigned int _val = val; \
-	asm volatile ( \
-		"iocsrwr.w %[val_temp], %[reg_temp] \n\t" \
-		: \
-		: [val_temp] "r" (_val), [reg_temp] "r" (reg) \
-		: "memory"); \
-})
+static inline void iocsr_write32(unsigned int val, unsigned int reg)
+{
+	asm volatile (
+		"iocsrwr.w %[val], %[reg] \n\t"
+		:
+		: [val] "r" (val), [reg] "r" (reg)
+		: "memory");
+}
 
-#define iocsr_write64(val, reg) \
-({ \
-	unsigned long _val = val; \
-	asm volatile ( \
-		"iocsrwr.d %[val_temp], %[reg_temp] \n\t" \
-		: \
-		: [val_temp] "r" (_val), [reg_temp] "r" (reg) \
-		: "memory"); \
-})
+static inline void iocsr_write64(unsigned long val, unsigned int reg)
+{
+	asm volatile (
+		"iocsrwr.d %[val], %[reg] \n\t"
+		:
+		: [val] "r" (val), [reg] "r" (reg)
+		: "memory");
+}
 
 #endif
 

@@ -6,6 +6,7 @@
 /* add necessary defines */
 typedef unsigned char u8;
 typedef unsigned int u32;
+typedef unsigned short u16;
 typedef unsigned long u64;
 #define __packed                        __attribute__((__packed__))
 
@@ -17,18 +18,20 @@ typedef unsigned long u64;
 
 #define LOONGSON3_BOOT_MEM_MAP_MAX 128
 
-#define LOONGSON_EFIBOOT_SIGNATURE	"BPI"
-#define LOONGSON_MEM_LINKLIST		"MEM"
-#define LOONGSON_VBIOS_LINKLIST		"VBIOS"
-#define LOONGSON_SCREENINFO_LINKLIST	"SINFO"
+#define LOONGSON_MEM_SIGNATURE			"MEM"
+#define LOONGSON_VBIOS_SIGNATURE		"VBIOS"
+#define LOONGSON_EFIBOOT_SIGNATURE		"BPI"
+#define LOONGSON_SCREENINFO_SIGNATURE		"SINFO"
+#define LOONGSON_EFIBOOT_VERSION		1000
 
 /* Values for Version BPI */
 enum bpi_version {
+	BPI_VERSION_NONE = 0,
 	BPI_VERSION_V1 = 1000, /* Signature="BPI01000" */
 	BPI_VERSION_V2 = 1001, /* Signature="BPI01001" */
 };
 
-/* Flags in bootparamsinterface */
+/* Flags in boot_params_interface */
 #define BPI_FLAGS_UEFI_SUPPORTED BIT(0)
 
 struct _extention_list_hdr {
@@ -39,7 +42,7 @@ struct _extention_list_hdr {
 	struct	_extention_list_hdr *next;
 } __packed;
 
-struct bootparamsinterface {
+struct boot_params_interface {
 	u64	signature;	/* {"B", "P", "I", "0", "1", ... } */
 	void	*systemtable;
 	struct	_extention_list_hdr *extlist;
@@ -76,15 +79,22 @@ struct loongson_board_info {
 };
 
 struct loongson_system_configuration {
-	int bpi_ver;
+	const char *cpuname;
 	int nr_cpus;
 	int nr_nodes;
-	int nr_io_pics;
-	int boot_cpu_id;
 	int cores_per_node;
 	int cores_per_package;
-	char *cpuname;
+	u16 boot_cpu_id;
+	u64 reserved_cpus_mask;
+	u64 suspend_addr;
 	u64 vgabios_addr;
+	u64 pm1_evt_reg;
+	u64 pm1_ena_reg;
+	u64 pm1_cnt_reg;
+	u64 gpe0_ena_reg;
+	u32 bpi_version;
+	u8 pcie_wake_enabled;
+	u8 is_soc_cpu;
 };
 
 #endif /* _BOOT_PARAM_H */

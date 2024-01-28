@@ -20,7 +20,7 @@
 
 #ifdef CONFIG_LOONGARCH64
 extern void irq_init(void);
-extern void parse_fwargs(int a0, char **args, struct bootparamsinterface *a2);
+extern void parse_fwargs(int a0, char **args, struct boot_params_interface *a2);
 extern void setup_arch(void);
 extern void trap_init(void);
 #endif
@@ -46,9 +46,9 @@ void init_all()
 		printk("cmd arg %d: %s\n", i, ((char **)fw_arg1)[i]);
 	}
 	printk("bpi = %x\n", fw_arg2);
-	printk("efi system table at %x\n", ((struct bootparamsinterface *)fw_arg2)->systemtable);
-    	printk("efi extend list at %x\n", ((struct bootparamsinterface *)fw_arg2)->extlist);
-	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct bootparamsinterface *)fw_arg2);
+	printk("efi system table at %x\n", ((struct boot_params_interface *)fw_arg2)->systemtable);
+    	printk("efi extend list at %x\n", ((struct boot_params_interface *)fw_arg2)->extlist);
+	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct boot_params_interface *)fw_arg2);
 	setup_arch();
 	trap_init();
 	irq_init();

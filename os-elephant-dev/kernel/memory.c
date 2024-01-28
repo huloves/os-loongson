@@ -591,10 +591,10 @@ void free_a_phy_page(uint32_t pg_phy_addr) {
 
 /* 内存管理部分初始化入口 */
 void mem_init() {
-   put_str("mem_init start\n");
-   uint32_t mem_bytes_total = (*(uint32_t*)(0xb00));
-   mem_pool_init(mem_bytes_total);	  // 初始化内存池
-/* 初始化mem_block_desc数组descs,为malloc做准备 */
-   block_desc_init(k_block_descs);
-   put_str("mem_init done\n");
+	put_str("mem_init start\n");
+	uint32_t mem_bytes_total = (*(uint32_t*)(0xb00));
+	mem_pool_init(mem_bytes_total);	  // 初始化内存池
+	/* 初始化mem_block_desc数组descs,为malloc做准备 */
+	block_desc_init(k_block_descs);
+	put_str("mem_init done\n");
 }
