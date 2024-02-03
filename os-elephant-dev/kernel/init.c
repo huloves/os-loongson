@@ -48,7 +48,6 @@ void init_all()
 	printk("bpi = %x\n", fw_arg2);
 	printk("efi system table at %x\n", ((struct boot_params_interface *)fw_arg2)->systemtable);
     	printk("efi extend list at %x\n", ((struct boot_params_interface *)fw_arg2)->extlist);
-	parse_fwargs(fw_arg0, (char **)fw_arg1, (struct boot_params_interface *)fw_arg2);
 	setup_arch();
 	trap_init();
 	irq_init();

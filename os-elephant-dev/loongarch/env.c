@@ -5,11 +5,12 @@
 #include <memory.h>
 #include <string.h>
 
-struct memblock_region_t memblock_regions[MEMBLOCK_REGION_NUM];
-
+uint64_t efi_system_table;
 struct loongsonlist_mem_map *loongson_mem_map;
 struct boot_params_interface *efi_bpi;
 struct loongson_system_configuration loongson_sysconf;
+
+struct memblock_region_t memblock_regions[MEMBLOCK_REGION_NUM];
 
 int signature_cmp(uint64_t sig_num, char *type)
 {
@@ -22,46 +23,6 @@ int signature_cmp(uint64_t sig_num, char *type)
 		type++;
 	}
 	return 1;
-}
-
-void parse_fwargs(int a0, char **args, struct boot_params_interface *a2)
-{
-    	int i;
-	struct _extention_list_hdr *ext_list_item = a2->extlist;
-	struct loongsonlist_mem_map *mem_info;
-	uint64_t mem_total = 0;
-
-	/**
-	 * SYSTEM_RAM  1  系统内存
-	 * MEM_RESERVED  2  系统保留内存
-	 */
-	while (ext_list_item != NULL) {
-		if (signature_cmp(ext_list_item->signature, "MEM")) {
-			mem_info = (struct loongsonlist_mem_map *) (ext_list_item);
-			printk("map_count = %d\n", mem_info->map_count);
-			for (i = 0; i < mem_info->map_count; i++) {
-				mem_total += mem_info->map[i].mem_size;
-				printk("mem_type: %d\tmem_start: %p\tmem_end:%p\tmem_size: %x\n",
-					mem_info->map[i].mem_type,
-					(char *)mem_info->map[i].mem_start,
-					(char *)mem_info->map[i].mem_start + mem_info->map[i].mem_size,
-					mem_info->map[i].mem_size);
-			}
-		}
-		ext_list_item = ext_list_item->next;
-	}
-	printk("mem_total = %p\n", mem_total);
-	ext_list_item = a2->extlist;
-	mem_info = (struct loongsonlist_mem_map *) (ext_list_item);
-	memblock_regions[0].type = mem_info->map[0].mem_type;
-	memblock_regions[0].base = mem_info->map[0].mem_start;
-	memblock_regions[0].size = mem_info->map[0].mem_size;
-	printk("memblock_region infomation:\n");
-	printk("type: %d\tbase: %p\tsize: %x\tend:%p\n",
-					memblock_regions[0].type,
-					(char *)memblock_regions[0].base,
-					memblock_regions[0].size,
-					(char *)memblock_regions[0].base + memblock_regions[0].size);
 }
 
 static u8 ext_listhdr_checksum(u8 *buffer, u32 length)
@@ -124,6 +85,37 @@ static int parse_bpi_extlist(struct boot_params_interface *bpi)
 	return 0;
 }
 
+static void parse_mem_info(struct loongsonlist_mem_map *mem_map)
+{
+    	int i;
+	struct loongsonlist_mem_map *mem_info;
+	uint64_t mem_total = 0;
+
+	/**
+	 * SYSTEM_RAM  1  系统内存
+	 * MEM_RESERVED  2  系统保留内存
+	 */
+	mem_info = mem_map;
+	printk("map_count = %d\n", mem_info->map_count);
+	for (i = 0; i < mem_info->map_count; i++) {
+		mem_total += mem_info->map[i].mem_size;
+		printk("mem_type: %d\tmem_start: %p\tmem_size: %x\n",
+			mem_info->map[i].mem_type,
+			(char *)mem_info->map[i].mem_start,
+			mem_info->map[i].mem_size);
+	}
+	printk("mem_total = %p\n", mem_total);
+	mem_info = mem_map;
+	memblock_regions[0].type = mem_info->map[0].mem_type;
+	memblock_regions[0].base = mem_info->map[0].mem_start;
+	memblock_regions[0].size = mem_info->map[0].mem_size;
+	printk("memblock_region infomation:\n");
+	printk("type: %d\tbase: %p\tsize: %x\n",
+				memblock_regions[0].type,
+				(char *)memblock_regions[0].base,
+				memblock_regions[0].size,
+}
+
 void init_environ(void)
 {
 	efi_bpi = (struct boot_params_interface *)fw_arg2;
@@ -136,4 +128,10 @@ void init_environ(void)
 
 	if (parse_bpi_extlist(efi_bpi) != 0)
 		printk("Scan bootparm failed\n");
+
+	parse_mem_info(loongson_mem_map);
+	
+	efi_system_table = (uint64_t)efi_bpi->systemtable;
+	printk("uefi signature: 0x%llx\n",
+			*(uint64_t *)efi_system_table);
 }
