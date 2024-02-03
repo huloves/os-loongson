@@ -113,7 +113,7 @@ static void parse_mem_info(struct loongsonlist_mem_map *mem_map)
 	printk("type: %d\tbase: %p\tsize: %x\n",
 				memblock_regions[0].type,
 				(char *)memblock_regions[0].base,
-				memblock_regions[0].size,
+				memblock_regions[0].size);
 }
 
 void init_environ(void)
