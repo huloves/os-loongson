@@ -6,10 +6,16 @@
 
 #ifndef __ASSEMBLY__
 
+#include <stdint.h>
+#include <boot_param.h>
+
+extern uint64_t efi_system_table;
+extern struct loongsonlist_mem_map *loongson_mem_map;
 extern unsigned long fw_arg0, fw_arg1, fw_arg2;
 extern unsigned long kernelsp;
 
 void init_environ(void);
+void memblock_init(void);
 
 union thread_union {
 	unsigned long stack[KERNEL_STACK_SIZE / sizeof(unsigned long)];

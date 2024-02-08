@@ -63,6 +63,8 @@
 
 #ifndef __ASSEMBLY__
 
+#include <pfn.h>
+
 /*
  * These are used to make use of C type-checking..
  */

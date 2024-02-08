@@ -14,4 +14,5 @@ void setup_arch(void)
 	 * 解析boot params interface
 	 */
 	init_environ();
+	memblock_init();
 }

@@ -118,7 +118,13 @@ static void parse_mem_info(struct loongsonlist_mem_map *mem_map)
 
 void init_environ(void)
 {
+	/**
+	 * 保存boot params interface地址
+	 */
 	efi_bpi = (struct boot_params_interface *)fw_arg2;
+	/**
+	 * 解析并保存bpi版本
+	 */
 	loongson_sysconf.bpi_version = get_bpi_version(&efi_bpi->signature);
 
 	printk("BPI%d.%d with boot flags %llx.\n",
@@ -126,10 +132,13 @@ void init_environ(void)
 			(loongson_sysconf.bpi_version & 0x07),
 			efi_bpi->flags);
 
+	/**
+	 * 解析extlist
+	 */
 	if (parse_bpi_extlist(efi_bpi) != 0)
 		printk("Scan bootparm failed\n");
 
-	parse_mem_info(loongson_mem_map);
+	// parse_mem_info(loongson_mem_map);
 	
 	efi_system_table = (uint64_t)efi_bpi->systemtable;
 	printk("uefi signature: 0x%llx\n",
