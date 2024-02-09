@@ -16,6 +16,7 @@
 #include <ns16550a.h>
 #include <bootinfo.h>
 #include <boot_param.h>
+#include <memblock.h>
 #endif
 
 #ifdef CONFIG_LOONGARCH64
@@ -51,7 +52,8 @@ void init_all()
 	setup_arch();
 	trap_init();
 	irq_init();
-	intr_enable();
+	memblock_memory_init();
+	// intr_enable();
 #endif
 	while(1);
 	// mem_init();	     // 初始化内存管理系统

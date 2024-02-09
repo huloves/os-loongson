@@ -1,5 +1,6 @@
 #include <memblock.h>
 #include <mm.h>
+#include <list.h>
 
 unsigned long max_low_pfn;
 unsigned long min_low_pfn;
@@ -8,6 +9,10 @@ unsigned long long max_possible_pfn;
 
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX_NUMNODES
+#define MAX_NUMNODES	0
 #endif
 
 #define INIT_MEMBLOCK_REGIONS			128
@@ -55,7 +60,6 @@ static int memblock_add_region(struct memblock_type *type,
 			rgn->base = base;
 			rgn->size = size;
 			rgn->flags = flags;
-			memblock_set_region_node(rgn, nid);
 			return 0;
 		}
 	}
@@ -65,5 +69,34 @@ static int memblock_add_region(struct memblock_type *type,
 
 int memblock_add(phys_addr_t base, phys_addr_t size)
 {
-	return memblock_add_region(&memblock.memory, base, size, 0, 0);
+	return memblock_add_region(&memblock.memory, base, size, MAX_NUMNODES, 0);
+}
+
+void memblock_memory_init(void)
+{
+	struct memblock_region *rgn;
+	struct memblock_type *type;
+	int idx;
+
+	printk("memblock_memory_init start\n");
+
+	type = &memblock.memory;
+	for_each_memblock_type(idx, type, rgn) {
+		rgn->base = 0;
+		rgn->size = 0;
+		rgn->frame_count = 0;
+		rgn->flags = 0;
+		bitmap_init(&rgn->bitmap);
+	}
+
+	type = &memblock.reserved;
+	for_each_memblock_type(idx, type, rgn) {
+		rgn->base = 0;
+		rgn->size = 0;
+		rgn->frame_count = 0;
+		rgn->flags = 0;
+		bitmap_init(&rgn->bitmap);
+	}
+
+	printk("memblock_memory_init complete\n");
 }

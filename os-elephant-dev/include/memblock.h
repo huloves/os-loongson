@@ -3,6 +3,8 @@
 #define _MEMBLOCK_H
 
 #include <types.h>
+#include <stdint.h>
+#include <bitmap.h>
 
 extern unsigned long max_low_pfn;
 extern unsigned long min_low_pfn;
@@ -51,10 +53,9 @@ enum memblock_flags {
 struct memblock_region {
 	phys_addr_t base;
 	phys_addr_t size;
+	uint32_t frame_count;
+	struct bitmap bitmap;
 	enum memblock_flags flags;
-#ifdef CONFIG_NUMA
-	int nid;
-#endif
 };
 
 /**
@@ -89,13 +90,10 @@ struct memblock {
 
 extern struct memblock memblock;
 
+void memblock_memory_init(void);
 int memblock_add(phys_addr_t base, phys_addr_t size);
 
 /* Flags for memblock allocation APIs */
 #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
-
-static inline void memblock_set_region_node(struct memblock_region *r, int nid)
-{
-}
 
 #endif /* _MEMBLOCK_H */

@@ -1,16 +1,65 @@
 #include <bootinfo.h>
 #include <page.h>
+#include <memblock.h>
 #include <stdio-kernel.h>
 #include <stdint.h>
+
+static struct {
+	phys_addr_t bank_data[16 * 2];
+	uint32_t bank_nr;
+} bpi_mem_banks;
+
+static void add_mem_bank(phys_addr_t start, unsigned long size, uint32_t index)
+{
+	bpi_mem_banks.bank_data[index * 2] = start;
+	bpi_mem_banks.bank_data[index * 2 + 1] = size;
+	bpi_mem_banks.bank_nr++;
+}
+
+static void bank_sort(void)
+{
+	phys_addr_t tmp = 0;
+	u32 i = 0, j = 0;
+
+	if(bpi_mem_banks.bank_nr == 0)
+		return;
+
+	for (i = 0; i < (bpi_mem_banks.bank_nr - 1); i++)
+		for (j = i + 1; j < bpi_mem_banks.bank_nr; j++)
+			if (bpi_mem_banks.bank_data[(2 * i)] >
+			    bpi_mem_banks.bank_data[(2 * j)]) {
+				tmp = bpi_mem_banks.bank_data[(2 * i)];
+				bpi_mem_banks.bank_data[(2 * i)] =
+					bpi_mem_banks.bank_data[(2 * j)];
+				bpi_mem_banks.bank_data[(2 * j)] = tmp;
+				tmp = bpi_mem_banks.bank_data[(2 * i) + 1];
+				bpi_mem_banks.bank_data[(2 * i) + 1] =
+					bpi_mem_banks.bank_data[(2 * j) + 1];
+				bpi_mem_banks.bank_data[(2 * j) + 1] = tmp;
+			}
+}
+
+static void show_bpi_mem_banks(void)
+{
+	int i;
+	u64 mem_start, mem_end, mem_size;
+
+	printk("bpi_mem_banks infomation: \n");
+	for (i = 0; i < bpi_mem_banks.bank_nr; i++) {
+		mem_start = bpi_mem_banks.bank_data[i * 2];
+		mem_size = bpi_mem_banks.bank_data[i * 2 + 1];
+		mem_end = mem_start + mem_size;
+		printk("start = %x, end = %x, size = %x\n",
+			mem_start, mem_end, mem_size);
+	}
+}
 
 void memblock_init(void)
 {
 	int i;
 	uint32_t mem_type;
-	uint64_t mem_start, mem_end, mem_size;
-	static unsigned long num_physpaces = 0;
-	unsigned long start_pfn, end_pfn;
-	unsigned long kernel_end_pfn;
+	uint64_t mem_start, mem_size;
+	uint32_t index;
 
 	if (!loongson_mem_map)
 		return;
@@ -19,36 +68,20 @@ void memblock_init(void)
 		mem_type = loongson_mem_map->map[i].mem_type;
 		mem_start = loongson_mem_map->map[i].mem_start;
 		mem_size = loongson_mem_map->map[i].mem_size;
-		mem_end = mem_start + mem_size;
 
 		switch (mem_type) {
 		case ADDRESS_TYPE_SYSRAM:
-			mem_start = PFN_ALIGN(mem_start);
-			mem_end = PFN_ALIGN(mem_end);
-			if (mem_start >= mem_end)
-				break;
-			num_physpaces += mem_size >> PAGE_SHIFT;
-			printk("mem_start:0x%llx, mem_size:0x%llx Bytes\n",
-				mem_start, mem_size);
-			printk("start_pfn:0x%llx, end_pfn:0x%llx\n",
-			mem_start >> PAGE_SHIFT, (mem_start + mem_size) >>
-			PAGE_SHIFT);
-			break;
-		case ADDRESS_TYPE_ACPI:
-			printk("mem_type:%d ", mem_type);
-			printk("mem_start:0x%llx, mem_size:0x%llx Bytes\n",
-				mem_start, mem_size);
-			mem_start = PFN_ALIGN(mem_start - PAGE_SIZE + 1);
-			mem_end = PFN_ALIGN(mem_end);
-			mem_size = mem_end - mem_start;
-			break;
-		case ADDRESS_TYPE_RESERVED:
-			printk("mem_type:%d ", mem_type);
-			printk("mem_start:0x%llx, mem_size:0x%llx Bytes\n",
-				mem_start, mem_size);
+			if (mem_start != 0 && mem_start != 0x90000000) {
+				add_mem_bank(mem_start, mem_size, index);
+				index++;
+			}
 			break;
 		}
 	}
+
+	bank_sort();
+
+	show_bpi_mem_banks();
 
 	return;
 }
