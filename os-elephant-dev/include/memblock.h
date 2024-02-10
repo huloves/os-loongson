@@ -55,6 +55,7 @@ struct memblock_region {
 	phys_addr_t size;
 	uint32_t frame_count;
 	struct bitmap bitmap;
+	bool used;
 	enum memblock_flags flags;
 };
 

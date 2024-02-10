@@ -56,10 +56,11 @@ static int memblock_add_region(struct memblock_type *type,
 	struct memblock_region *rgn;
 
 	for_each_memblock_type(idx, type, rgn) {
-		if (rgn->size == 0) {
+		if (rgn->used == false) {
 			rgn->base = base;
 			rgn->size = size;
 			rgn->flags = flags;
+			rgn->used = true;
 			return 0;
 		}
 	}
@@ -86,6 +87,7 @@ void memblock_memory_init(void)
 		rgn->size = 0;
 		rgn->frame_count = 0;
 		rgn->flags = 0;
+		rgn->used = false;
 		bitmap_init(&rgn->bitmap);
 	}
 
@@ -95,6 +97,7 @@ void memblock_memory_init(void)
 		rgn->size = 0;
 		rgn->frame_count = 0;
 		rgn->flags = 0;
+		rgn->used = false;
 		bitmap_init(&rgn->bitmap);
 	}
 
