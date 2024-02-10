@@ -91,6 +91,23 @@ struct memblock {
 
 extern struct memblock memblock;
 
+#define ORDER_SIZE(order)	(0x01 << (uint64_t)(order))
+#define ORDER_MASK(order)	(ORDER_SIZE(order) - 0x01)
+
+#define order_size(order)		(0x01ULL << (order))
+
+static inline uint64_t align_up_order(uint64_t size,
+	uint64_t order)
+{
+	uint64_t ret = size >> order;
+
+	if (((size & ORDER_MASK(order)) != 0) && (ret != 0xfffffffffffff)) {
+		ret++;
+	}
+
+	return ret << order;
+}
+
 void memblock_memory_init(void);
 int memblock_add(phys_addr_t base, phys_addr_t size);
 

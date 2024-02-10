@@ -8,11 +8,19 @@
 
 #include <stdint.h>
 #include <boot_param.h>
+#include <types.h>
 
 extern uint64_t efi_system_table;
 extern struct loongsonlist_mem_map *loongson_mem_map;
 extern unsigned long fw_arg0, fw_arg1, fw_arg2;
 extern unsigned long kernelsp;
+
+struct bpi_mem_banks_t {
+	phys_addr_t bank_data[16 * 2];
+	uint32_t bank_nr;
+};
+
+extern struct bpi_mem_banks_t bpi_mem_banks;
 
 void init_environ(void);
 void memblock_init(void);

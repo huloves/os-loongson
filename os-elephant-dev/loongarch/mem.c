@@ -4,10 +4,7 @@
 #include <stdio-kernel.h>
 #include <stdint.h>
 
-static struct {
-	phys_addr_t bank_data[16 * 2];
-	uint32_t bank_nr;
-} bpi_mem_banks;
+struct bpi_mem_banks_t bpi_mem_banks;
 
 static void add_mem_bank(phys_addr_t start, unsigned long size, uint32_t index)
 {
