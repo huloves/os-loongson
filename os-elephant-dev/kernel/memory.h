@@ -4,19 +4,19 @@
 #include "bitmap.h"
 #include "list.h"
 
-#ifdef CONFIG_LOONGARCH64
+// #ifdef CONFIG_LOONGARCH64
 
-#define MEMBLOCK_REGION_NUM	1
+// #define MEMBLOCK_REGION_NUM	1
 
-struct memblock_region_t {
-	uint32_t type;
-	uint64_t base;
-	uint64_t size;
-};
+// struct memblock_region_t {
+// 	uint32_t type;
+// 	uint64_t base;
+// 	uint64_t size;
+// };
 
-extern struct memblock_region_t memblock_regions[];
+// extern struct memblock_region_t memblock_regions[];
 
-#endif
+// #endif
 
 /* 内存池标记,用于判断用哪个内存池 */
 enum pool_flags {

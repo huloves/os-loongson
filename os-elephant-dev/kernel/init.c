@@ -52,7 +52,10 @@ void init_all()
 	setup_arch();
 	trap_init();
 	irq_init();
-	memblock_memory_init();
+	if (memblock_memory_init()) {
+		printk("memblock memory init failed\n");
+		while (1);
+	}
 	// intr_enable();
 #endif
 	while(1);

@@ -56,7 +56,7 @@ void memblock_init(void)
 	int i;
 	uint32_t mem_type;
 	uint64_t mem_start, mem_size;
-	uint32_t index;
+	uint32_t index = 0;
 
 	if (!loongson_mem_map)
 		return;

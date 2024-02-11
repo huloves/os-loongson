@@ -55,6 +55,7 @@ struct memblock_region {
 	phys_addr_t size;
 	uint32_t frame_count;
 	struct bitmap bitmap;
+	uint32_t free;
 	bool used;
 	enum memblock_flags flags;
 };
@@ -108,7 +109,7 @@ static inline uint64_t align_up_order(uint64_t size,
 	return ret << order;
 }
 
-void memblock_memory_init(void);
+int memblock_memory_init(void);
 int memblock_add(phys_addr_t base, phys_addr_t size);
 
 /* Flags for memblock allocation APIs */

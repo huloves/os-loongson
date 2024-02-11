@@ -4,6 +4,8 @@
 #include <list.h>
 #include <loongarch.h>
 #include <bootinfo.h>
+#include <debug.h>
+#include <stdio-kernel.h>
 
 unsigned long max_low_pfn;
 unsigned long min_low_pfn;
@@ -62,7 +64,7 @@ static bool in_region(const struct memblock_region *region, phys_addr_t addr)
 	return true;
 }
 
-static uint64_t free_count(const struct memblock_region *region,
+static uint64_t free_count(struct memblock_region *region,
 			uint64_t offset, uint64_t count)
 {
 	uint64_t ret = 0;
@@ -77,13 +79,11 @@ static uint64_t free_count(const struct memblock_region *region,
 	return ret;
 }
 
-static phys_size_t phys_addr_alloc(phys_addr_t *addr,
+static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 			phys_size_t size, uint32_t align_order)
 {
 	uint64_t page_count, page_align;
-	uint64_t flag;
-	int i;
-	phys_size_t ret;
+	int i, j;
 	phys_size_t size_temp = size;
 	
 	if (addr == NULL || size_temp == 0 || align_order < PAGE_SHIFT ||
@@ -101,11 +101,74 @@ static phys_size_t phys_addr_alloc(phys_addr_t *addr,
 		region = &memblock.memory.regions[i];
 		region_page = region->frame_count;
 
-		// TODO: lock
-		// TODO: unlock
+		if (page_count > region->free)
+			continue;
+		
+		offset = align_up_order(region->base, align_order) - region->base;
+		offset = offset >> PAGE_SHIFT;
+
+		for (; offset < region_page; offset += page_align) {
+			free_tmp = free_count(region, offset, page_count);
+			if (free_tmp != page_count)
+				continue;
+			
+			for (j = 0; j < page_count; j++)
+				bitmap_set(&region->bitmap, offset + j, 1);
+			
+			region->free -= page_count;
+
+			*addr = region->base + (offset * PAGE_SIZE);
+
+			return size_temp;
+		}
 	}
 
+	*addr = 0;
+
 	return 0;
+}
+
+phys_size_t phy_pages_alloc_align(phys_addr_t *addr, phys_size_t size, uint64_t align_order)
+{
+	return phys_pages_alloc(addr, size, align_order);
+}
+
+int phys_pages_reserve(phys_addr_t addr, phys_size_t size)
+{
+	phys_addr_t end;
+	int ret = -1;
+	int i, j;
+	
+	end = addr + size - 1;
+	ASSERT((addr & PAGE_MASK) == 0);
+	ASSERT((size & PAGE_MASK) == 0);
+
+	for (i = 0; i < memblock.memory.cnt; i++) {
+		uint64_t offset, count, free_tmp;
+		struct memblock_region *region;
+
+		region = &memblock.memory.regions[i];
+		if (in_region(region, addr) == false || in_region(region, end) == false)
+			continue;
+		
+		offset = (addr - region->base) >> PAGE_SHIFT;
+		count = size >> PAGE_SHIFT;
+
+		free_tmp = free_count(region, offset, count);
+		if (free_tmp == count) {
+			for (j = 0; j < count; j++) {
+				bitmap_set(&region->bitmap, offset + j, 1);
+				region->free -= count;
+				ret = 0;
+			}
+		} else {
+			ret = -1;
+		}
+
+		break;
+	}
+
+	return ret;
 }
 
 static int memblock_add_region(struct memblock_type *type,
@@ -133,10 +196,10 @@ int memblock_add(phys_addr_t base, phys_addr_t size)
 	return memblock_add_region(&memblock.memory, base, size, MAX_NUMNODES, 0);
 }
 
-void memblock_memory_init(void)
+int memblock_memory_init(void)
 {
-	uint8_t memblock_bitmap_start = (uint8_t)memblock_bitmap;
-	uint64_t memblock_bitmap_end = memblock_bitmap_start + 1024;
+	uint64_t memblock_bitmap_start = (uint64_t)memblock_bitmap;
+	// uint64_t memblock_bitmap_end = memblock_bitmap_start + 1024;
 	int i;
 
 	printk("memblock_memory_init start\n");
@@ -156,10 +219,11 @@ void memblock_memory_init(void)
 		start = bpi_mem_banks.bank_data[i * 2];
 		size = bpi_mem_banks.bank_data[i * 2 + 1];
 		frame_count = size >> PAGE_SHIFT;
+		printk("[%s] start = %lx, size = %lx\n", __func__, start, size);
 		
-		if (start & PAGE_MASK != 0)
+		if ((start & ~PAGE_MASK) != 0)
 			return -1;
-		if (size & PAGE_MASK != 0)
+		if ((size & ~PAGE_MASK) != 0)
 			return -1;
 		
 		region->base = start;
@@ -168,10 +232,13 @@ void memblock_memory_init(void)
 
 		region->bitmap.bits = (uint8_t *)memblock_bitmap_start;
 		region->bitmap.btmp_bytes_len = (frame_count + 8 - 1) / 8;
+		region->free = region->frame_count;
 		bitmap_init(&region->bitmap);
 
 		memblock_bitmap_start += region->bitmap.btmp_bytes_len;
 	}
 
 	printk("memblock_memory_init complete\n");
+
+	return 0;
 }
