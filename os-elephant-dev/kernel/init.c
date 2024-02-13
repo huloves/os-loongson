@@ -52,14 +52,17 @@ void init_all()
 	setup_arch();
 	trap_init();
 	irq_init();
+	// intr_enable();
+#endif
+#ifndef CONFIG_LOONGARCH64
+	mem_init();	     // 初始化内存管理系统
+#else
 	if (memblock_memory_init()) {
 		printk("memblock memory init failed\n");
 		while (1);
 	}
-	// intr_enable();
 #endif
 	while(1);
-	// mem_init();	     // 初始化内存管理系统
 	// thread_init();    // 初始化线程相关结构
 	// timer_init();     // 初始化PIT
 	// console_init();   // 控制台初始化最好放在开中断之前

@@ -33,7 +33,9 @@ unsigned long long max_possible_pfn;
 static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_MEMORY_REGIONS];
 static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_RESERVED_REGIONS];
 
-static uint8_t memblock_bitmap[1024 * 8];
+#define BITMAP_SIZE	1024 * 1024
+
+static uint8_t memblock_bitmap[BITMAP_SIZE];
 
 struct memblock memblock = {
 	.memory.regions		= memblock_memory_init_regions,
@@ -199,7 +201,7 @@ int memblock_add(phys_addr_t base, phys_addr_t size)
 int memblock_memory_init(void)
 {
 	uint64_t memblock_bitmap_start = (uint64_t)memblock_bitmap;
-	// uint64_t memblock_bitmap_end = memblock_bitmap_start + 1024;
+	uint64_t memblock_bitmap_end = memblock_bitmap_start + BITMAP_SIZE;
 	int i;
 
 	printk("memblock_memory_init start\n");
@@ -231,7 +233,10 @@ int memblock_memory_init(void)
 		region->frame_count = frame_count;
 
 		region->bitmap.bits = (uint8_t *)memblock_bitmap_start;
-		region->bitmap.btmp_bytes_len = (frame_count + 8 - 1) / 8;
+		region->bitmap.btmp_bytes_len += (frame_count + 8 - 1) / 8;
+
+		ASSERT(memblock_bitmap_start + region->bitmap.btmp_bytes_len <= memblock_bitmap_end);
+
 		region->free = region->frame_count;
 		bitmap_init(&region->bitmap);
 
