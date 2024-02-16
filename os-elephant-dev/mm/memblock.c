@@ -130,7 +130,7 @@ static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 	return 0;
 }
 
-phys_size_t phy_pages_alloc_align(phys_addr_t *addr, phys_size_t size, uint64_t align_order)
+phys_size_t phys_pages_alloc_align(phys_addr_t *addr, phys_size_t size, uint64_t align_order)
 {
 	return phys_pages_alloc(addr, size, align_order);
 }

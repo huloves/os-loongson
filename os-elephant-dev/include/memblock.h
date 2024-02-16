@@ -111,6 +111,7 @@ static inline uint64_t align_up_order(uint64_t size,
 
 int memblock_memory_init(void);
 int memblock_add(phys_addr_t base, phys_addr_t size);
+phys_size_t phys_pages_alloc_align(phys_addr_t *addr, phys_size_t size, uint64_t align_order);
 
 /* Flags for memblock allocation APIs */
 #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)

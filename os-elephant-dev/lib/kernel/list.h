@@ -2,9 +2,17 @@
 #define __LIB_KERNEL_LIST_H
 #include "global.h"
 
+#ifndef CONFIG_LOONGARCH64
 #define offset(struct_type,member) (int)(&((struct_type*)0)->member)
 #define elem2entry(struct_type, struct_member_name, elem_ptr) \
 	 (struct_type*)((int)elem_ptr - offset(struct_type, struct_member_name))
+#else
+
+#define offset(struct_type,member) (unsigned long)(&((struct_type *)0)->member)
+#define elem2entry(struct_type, struct_member_name, elem_ptr) \
+	 (struct_type *)((unsigned long)elem_ptr - offset(struct_type, struct_member_name))
+
+#endif
 
 /**********   定义链表结点成员结构   ***********
 *结点中不需要数据成元,只要求前驱和后继结点指针*/
