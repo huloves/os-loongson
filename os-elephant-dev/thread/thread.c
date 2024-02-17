@@ -30,6 +30,8 @@
 #include "file.h"
 #include <page.h>
 #include <pt_regs.h>
+#include <loongarch.h>
+#include <stdio-kernel.h>
 
 #endif
 
@@ -49,7 +51,11 @@ struct list thread_ready_list;	    // 就绪队列
 struct list thread_all_list;	    // 所有任务队列
 static struct list_elem* thread_tag;// 用于保存队列中的线程结点
 
+#ifndef CONFIG_LOONGARCH64
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
+#else
+extern void switch_to(struct task_struct* next);
+#endif
 extern void init(void);
 /* 系统空闲时运行的线程 */
 // static void idle(void* arg UNUSED) {
@@ -73,12 +79,24 @@ struct task_struct* running_thread() {
 #endif
 }
 
+#ifndef CONFIG_LOONGARCH64
 /* 由kernel_thread去执行function(func_arg) */
 static void kernel_thread(thread_func* function, void* func_arg) {
 /* 执行function前要开中断,避免后面的时钟中断被屏蔽,而无法调度其它线程 */
    intr_enable();
    function(func_arg); 
 }
+#else
+static void kernel_thread(void)
+{
+	register uint64_t sp asm("sp");
+	struct task_struct *task = (struct task_struct *)(sp >> 12 << 12);
+	printk("@@@@@: task = %p\n", task);
+	printk("@@@@@: 123222kkkkk\n");
+	task->function(task->func_arg);
+	return;
+}
+#endif
 
 /* 初始化pid池 */
 static void pid_pool_init(void) { 
@@ -118,15 +136,17 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
 	/* 先预留中断使用栈的空间,可见thread.h中定义的结构 */
 #ifndef CONFIG_LOONGARCH64
 	pthread->self_kstack -= sizeof(struct intr_stack);
+	/* 再留出线程栈空间,可见thread.h中定义 */
+	pthread->self_kstack -= sizeof(struct thread_stack);
+	struct thread_stack *kthread_stack = (struct thread_stack *)pthread->self_kstack;
 #else
 	pthread->self_kstack -= sizeof(struct pt_regs);
 	pthread->function = function;
 	pthread->func_arg = func_arg;
+
+	struct thread_stack *kthread_stack = &pthread->thread;
 #endif
 
-	/* 再留出线程栈空间,可见thread.h中定义 */
-	pthread->self_kstack -= sizeof(struct thread_stack);
-	struct thread_stack *kthread_stack = (struct thread_stack *)pthread->self_kstack;
 #ifndef CONFIG_LOONGARCH64
 	kthread_stack->eip = kernel_thread;
 	kthread_stack->function = function;
@@ -135,6 +155,9 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
 #else
 	memset(kthread_stack, 0, sizeof(struct thread_stack));
 	kthread_stack->sched_ra = (uint64_t)kernel_thread;
+	kthread_stack->csr_crmd = read_csr_crmd();
+	kthread_stack->csr_prmd = read_csr_prmd();
+	kthread_stack->reg03 = (uint64_t)pthread->self_kstack;
 #endif
 }
 
@@ -182,6 +205,14 @@ struct task_struct *thread_start(char *name, int prio, thread_func function, voi
 {
         /* pcb都位于内核空间,包括用户进程的pcb也是在内核空间 */
         struct task_struct *thread = get_kernel_pages(1);
+	printk("@@@@@: thread = %p\n", thread);
+	while (1);
+	// thread = get_kernel_pages(1);
+	// printk("@@@@@: thread = %p\n", thread);
+	// thread = get_kernel_pages(1);
+	// printk("@@@@@: thread = %p\n", thread);
+	// thread = get_kernel_pages(1);
+	// printk("@@@@@: thread = %p\n", thread);
         init_thread(thread, name, prio);
         thread_create(thread, function, func_arg);
 
@@ -194,6 +225,8 @@ struct task_struct *thread_start(char *name, int prio, thread_func function, voi
 	ASSERT(!elem_find(&thread_all_list, &thread->all_list_tag));
 	/* 加入全部线程队列 */
 	list_append(&thread_all_list, &thread->all_list_tag);
+
+	switch_to(thread);
 
         return thread;
 }

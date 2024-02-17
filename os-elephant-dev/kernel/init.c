@@ -66,6 +66,7 @@ void init_all()
 #endif
 	thread_init();    // 初始化线程相关结构
 	thread_start("kthread_a", 31, kthread_a, "argA");
+	printk("@@@@@: 123\n");
 	while(1);
 	// timer_init();     // 初始化PIT
 	// console_init();   // 控制台初始化最好放在开中断之前
@@ -79,8 +80,11 @@ void init_all()
 
 void kthread_a(void *arg)
 {
-	char *str = arg;
+	// char *str = arg;
+	int a = 0x10000000;
+	printk("@@@@@: 123\n");
 	while (1) {
-		printk("%s", str);
+		while (a--) ;
+		printk("%s ", "kthread_a");
 	}
 }

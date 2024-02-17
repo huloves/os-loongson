@@ -1,3 +1,4 @@
+#ifndef CONFIG_LOONGARCH64
 [bits 32]
 section .text
 global switch_to
@@ -22,3 +23,24 @@ switch_to:
    pop esi
    ret				 ; 返回到上面switch_to下面的那句注释的返回地址,
 				 ; 未由中断进入,第一次执行时会返回到kernel_thread
+#else
+
+#include <regdef.h>
+#include <stackframe.h>
+#include <asmmacro.h>
+
+.section ".text","ax"
+
+	.align 12
+
+.global kernel_entry
+switch_to:
+	ldptr.d sp, a0, 0
+	cpu_restore_nonscratch a0
+
+	ldptr.d	t1, a0, THREAD_CSRPRMD
+	csrwr	t1, LOONGARCH_CSR_PRMD
+
+	jr	ra
+
+#endif

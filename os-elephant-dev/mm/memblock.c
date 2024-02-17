@@ -6,6 +6,7 @@
 #include <bootinfo.h>
 #include <debug.h>
 #include <stdio-kernel.h>
+#include <bootinfo.h>
 
 unsigned long max_low_pfn;
 unsigned long min_low_pfn;
@@ -87,9 +88,9 @@ static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 	uint64_t page_count, page_align;
 	int i, j;
 	phys_size_t size_temp = size;
-	
+
 	if (addr == NULL || size_temp == 0 || align_order < PAGE_SHIFT ||
-		align_order < BITS_PER_LONG)
+		align_order > BITS_PER_LONG)
 		return 0;
 	
 	size_temp = align_up_order(size_temp, align_order);
@@ -109,6 +110,8 @@ static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 		offset = align_up_order(region->base, align_order) - region->base;
 		offset = offset >> PAGE_SHIFT;
 
+		printk("@@@@@: region_page = %lx, offset = %lx\n", region_page, offset);
+
 		for (; offset < region_page; offset += page_align) {
 			free_tmp = free_count(region, offset, page_count);
 			if (free_tmp != page_count)
@@ -120,6 +123,8 @@ static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 			region->free -= page_count;
 
 			*addr = region->base + (offset * PAGE_SIZE);
+
+			printk("@@@@@: *addr = %lx\n", *addr);
 
 			return size_temp;
 		}
@@ -142,8 +147,8 @@ int phys_pages_reserve(phys_addr_t addr, phys_size_t size)
 	int i, j;
 	
 	end = addr + size - 1;
-	ASSERT((addr & PAGE_MASK) == 0);
-	ASSERT((size & PAGE_MASK) == 0);
+	ASSERT((addr & ~PAGE_MASK) == 0);
+	ASSERT((size & ~PAGE_MASK) == 0);
 
 	for (i = 0; i < memblock.memory.cnt; i++) {
 		uint64_t offset, count, free_tmp;
@@ -242,6 +247,16 @@ int memblock_memory_init(void)
 
 		memblock_bitmap_start += region->bitmap.btmp_bytes_len;
 	}
+
+	phys_pages_reserve(0x200000, align_up_order(_end - _start, PAGE_SHIFT));
+
+	uint64_t vaddr;
+	phys_pages_alloc_align(&vaddr, 1 * PAGE_SIZE, PAGE_SHIFT);
+	printk("@@@@@: vaddr = %lx\n", vaddr);
+	phys_pages_alloc_align(&vaddr, 1 * PAGE_SIZE, PAGE_SHIFT);
+	printk("@@@@@: vaddr = %lx\n", vaddr);
+	phys_pages_alloc_align(&vaddr, 1 * PAGE_SIZE, PAGE_SHIFT);
+	printk("@@@@@: vaddr = %lx\n", vaddr);
 
 	printk("memblock_memory_init complete\n");
 

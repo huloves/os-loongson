@@ -114,6 +114,7 @@ struct task_struct {
 	uint64_t *self_kstack;   // 各内核线程都用自己的内核栈
 	thread_func *function;
 	void *func_arg;
+	struct thread_stack thread;
 #endif
 	pid_t pid;
 	enum task_status status;

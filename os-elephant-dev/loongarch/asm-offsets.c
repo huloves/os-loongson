@@ -1,0 +1,85 @@
+#include <pt_regs.h>
+#include <thread.h>
+#include <process.h>
+#include <build.h>
+
+void output_ptreg_defines(void)
+{
+	COMMENT("LoongArch pt_regs offsets.");
+	OFFSET(PT_HWIRQ, pt_regs, hwirq);
+	OFFSET(PT_R0, pt_regs, regs[0]);
+	OFFSET(PT_R1, pt_regs, regs[1]);
+	OFFSET(PT_R2, pt_regs, regs[2]);
+	OFFSET(PT_R3, pt_regs, regs[3]);
+	OFFSET(PT_R4, pt_regs, regs[4]);
+	OFFSET(PT_R5, pt_regs, regs[5]);
+	OFFSET(PT_R6, pt_regs, regs[6]);
+	OFFSET(PT_R7, pt_regs, regs[7]);
+	OFFSET(PT_R8, pt_regs, regs[8]);
+	OFFSET(PT_R9, pt_regs, regs[9]);
+	OFFSET(PT_R10, pt_regs, regs[10]);
+	OFFSET(PT_R11, pt_regs, regs[11]);
+	OFFSET(PT_R12, pt_regs, regs[12]);
+	OFFSET(PT_R13, pt_regs, regs[13]);
+	OFFSET(PT_R14, pt_regs, regs[14]);
+	OFFSET(PT_R15, pt_regs, regs[15]);
+	OFFSET(PT_R16, pt_regs, regs[16]);
+	OFFSET(PT_R17, pt_regs, regs[17]);
+	OFFSET(PT_R18, pt_regs, regs[18]);
+	OFFSET(PT_R19, pt_regs, regs[19]);
+	OFFSET(PT_R20, pt_regs, regs[20]);
+	OFFSET(PT_R21, pt_regs, regs[21]);
+	OFFSET(PT_R22, pt_regs, regs[22]);
+	OFFSET(PT_R23, pt_regs, regs[23]);
+	OFFSET(PT_R24, pt_regs, regs[24]);
+	OFFSET(PT_R25, pt_regs, regs[25]);
+	OFFSET(PT_R26, pt_regs, regs[26]);
+	OFFSET(PT_R27, pt_regs, regs[27]);
+	OFFSET(PT_R28, pt_regs, regs[28]);
+	OFFSET(PT_R29, pt_regs, regs[29]);
+	OFFSET(PT_R30, pt_regs, regs[30]);
+	OFFSET(PT_R31, pt_regs, regs[31]);
+	OFFSET(PT_CRMD, pt_regs, csr_crmd);
+	OFFSET(PT_PRMD, pt_regs, csr_prmd);
+	OFFSET(PT_EUEN, pt_regs, csr_euen);
+	OFFSET(PT_ECFG, pt_regs, csr_ecfg);
+	OFFSET(PT_ESTAT, pt_regs, csr_estat);
+	OFFSET(PT_ERA, pt_regs, csr_era);
+	OFFSET(PT_BVADDR, pt_regs, csr_badvaddr);
+	OFFSET(PT_ORIG_A0, pt_regs, orig_a0);
+	DEFINE(PT_SIZE, sizeof(struct pt_regs));
+	BLANK();
+}
+
+void output_thread_defines(void)
+{
+	OFFSET(THREAD_REG01, task_struct, thread.reg01);
+	OFFSET(THREAD_REG03, task_struct, thread.reg03);
+	OFFSET(THREAD_REG22, task_struct, thread.reg22);
+	OFFSET(THREAD_REG23, task_struct, thread.reg23);
+	OFFSET(THREAD_REG24, task_struct, thread.reg24);
+	OFFSET(THREAD_REG25, task_struct, thread.reg25);
+	OFFSET(THREAD_REG26, task_struct, thread.reg26);
+	OFFSET(THREAD_REG27, task_struct, thread.reg27);
+	OFFSET(THREAD_REG28, task_struct, thread.reg28);
+	OFFSET(THREAD_REG29, task_struct, thread.reg29);
+	OFFSET(THREAD_REG30, task_struct, thread.reg30);
+	OFFSET(THREAD_REG31, task_struct, thread.reg31);
+	OFFSET(THREAD_SCHED_RA, task_struct, thread.sched_ra);
+	OFFSET(THREAD_SCHED_CFA, task_struct, thread.sched_cfa);
+	OFFSET(THREAD_CSRCRMD, task_struct,
+	       thread.csr_crmd);
+	OFFSET(THREAD_CSRPRMD, task_struct,
+	       thread.csr_prmd);
+	OFFSET(THREAD_CSREUEN, task_struct,
+	       thread.csr_euen);
+	OFFSET(THREAD_CSRECFG, task_struct,
+	       thread.csr_ecfg);
+
+	OFFSET(THREAD_SCR0, task_struct, thread.scr0);
+	OFFSET(THREAD_SCR1, task_struct, thread.scr1);
+	OFFSET(THREAD_SCR2, task_struct, thread.scr2);
+	OFFSET(THREAD_SCR3, task_struct, thread.scr3);
+
+	OFFSET(THREAD_EFLAGS, task_struct, thread.eflags);
+}

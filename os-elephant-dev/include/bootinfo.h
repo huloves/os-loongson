@@ -15,6 +15,9 @@ extern struct loongsonlist_mem_map *loongson_mem_map;
 extern unsigned long fw_arg0, fw_arg1, fw_arg2;
 extern unsigned long kernelsp;
 
+extern char _start[];
+extern char _end[];
+
 struct bpi_mem_banks_t {
 	phys_addr_t bank_data[16 * 2];
 	uint32_t bank_nr;
