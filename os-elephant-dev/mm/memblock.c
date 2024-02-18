@@ -34,7 +34,7 @@ unsigned long long max_possible_pfn;
 static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_MEMORY_REGIONS];
 static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_RESERVED_REGIONS];
 
-#define BITMAP_SIZE	1024 * 1024
+#define BITMAP_SIZE	0x10000 * 2
 
 static uint8_t memblock_bitmap[BITMAP_SIZE];
 
@@ -73,11 +73,14 @@ static uint64_t free_count(struct memblock_region *region,
 	uint64_t ret = 0;
 	uint32_t i;
 
+	// printk("@@@@@: %x\n", *region->bitmap.bits);
+
 	for (i = offset; i < offset + count; i++) {
-		if (bitmap_scan_test(&region->bitmap, i) == true)
-			break;
-		ret++;
+		if (bitmap_scan_test(&region->bitmap, i) == false)
+			ret++;
 	}
+
+	// printk("@@@@@: LLL offset = %x, count = %x, ret = %x\n", offset, count, ret);
 
 	return ret;
 }
@@ -110,8 +113,6 @@ static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 		offset = align_up_order(region->base, align_order) - region->base;
 		offset = offset >> PAGE_SHIFT;
 
-		printk("@@@@@: region_page = %lx, offset = %lx\n", region_page, offset);
-
 		for (; offset < region_page; offset += page_align) {
 			free_tmp = free_count(region, offset, page_count);
 			if (free_tmp != page_count)
@@ -123,8 +124,6 @@ static phys_size_t phys_pages_alloc(phys_addr_t *addr,
 			region->free -= page_count;
 
 			*addr = region->base + (offset * PAGE_SIZE);
-
-			printk("@@@@@: *addr = %lx\n", *addr);
 
 			return size_temp;
 		}
@@ -163,11 +162,10 @@ int phys_pages_reserve(phys_addr_t addr, phys_size_t size)
 
 		free_tmp = free_count(region, offset, count);
 		if (free_tmp == count) {
-			for (j = 0; j < count; j++) {
+			for (j = 0; j < count; j++)
 				bitmap_set(&region->bitmap, offset + j, 1);
-				region->free -= count;
-				ret = 0;
-			}
+			region->free -= count;
+			ret = 0;
 		} else {
 			ret = -1;
 		}
@@ -238,7 +236,9 @@ int memblock_memory_init(void)
 		region->frame_count = frame_count;
 
 		region->bitmap.bits = (uint8_t *)memblock_bitmap_start;
-		region->bitmap.btmp_bytes_len += (frame_count + 8 - 1) / 8;
+		region->bitmap.btmp_bytes_len = frame_count / 8;
+
+		printk("region->bitmap.btmp_bytes_len = %x\n", region->bitmap.btmp_bytes_len);
 
 		ASSERT(memblock_bitmap_start + region->bitmap.btmp_bytes_len <= memblock_bitmap_end);
 
@@ -249,14 +249,6 @@ int memblock_memory_init(void)
 	}
 
 	phys_pages_reserve(0x200000, align_up_order(_end - _start, PAGE_SHIFT));
-
-	uint64_t vaddr;
-	phys_pages_alloc_align(&vaddr, 1 * PAGE_SIZE, PAGE_SHIFT);
-	printk("@@@@@: vaddr = %lx\n", vaddr);
-	phys_pages_alloc_align(&vaddr, 1 * PAGE_SIZE, PAGE_SHIFT);
-	printk("@@@@@: vaddr = %lx\n", vaddr);
-	phys_pages_alloc_align(&vaddr, 1 * PAGE_SIZE, PAGE_SHIFT);
-	printk("@@@@@: vaddr = %lx\n", vaddr);
 
 	printk("memblock_memory_init complete\n");
 
