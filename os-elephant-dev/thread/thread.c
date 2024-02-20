@@ -206,13 +206,6 @@ struct task_struct *thread_start(char *name, int prio, thread_func function, voi
         /* pcb都位于内核空间,包括用户进程的pcb也是在内核空间 */
         struct task_struct *thread = get_kernel_pages(1);
 	printk("@@@@@: thread = %p\n", thread);
-	while (1);
-	// thread = get_kernel_pages(1);
-	// printk("@@@@@: thread = %p\n", thread);
-	// thread = get_kernel_pages(1);
-	// printk("@@@@@: thread = %p\n", thread);
-	// thread = get_kernel_pages(1);
-	// printk("@@@@@: thread = %p\n", thread);
         init_thread(thread, name, prio);
         thread_create(thread, function, func_arg);
 

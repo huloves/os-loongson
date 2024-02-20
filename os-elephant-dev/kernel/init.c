@@ -81,7 +81,7 @@ void init_all()
 void kthread_a(void *arg)
 {
 	// char *str = arg;
-	int a = 0x10000000;
+	int a = 0x10;
 	printk("@@@@@: 123\n");
 	while (1) {
 		while (a--) ;
