@@ -32,6 +32,7 @@
 #include <pt_regs.h>
 #include <loongarch.h>
 #include <stdio-kernel.h>
+#include <bootinfo.h>
 
 #endif
 
@@ -55,6 +56,7 @@ static struct list_elem* thread_tag;// 用于保存队列中的线程结点
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 #else
 extern void switch_to(struct task_struct *cur, struct task_struct* next);
+// extern void switch_to(struct task_struct* next);
 #endif
 extern void init(void);
 /* 系统空闲时运行的线程 */
@@ -75,7 +77,7 @@ struct task_struct* running_thread() {
 	return (struct task_struct*)(esp & 0xfffff000);
 #else
 	register uint64_t sp asm("sp");
-	return (struct task_struct *)(sp & PAGE_MASK);
+	return (struct task_struct *)(sp & ~(KERNEL_STACK_SIZE - 1));
 #endif
 }
 
@@ -89,9 +91,7 @@ static void kernel_thread(thread_func* function, void* func_arg) {
 #else
 static void kernel_thread(void)
 {
-	register uint64_t sp asm("sp");
-	struct task_struct *task = (struct task_struct *)(sp >> 12 << 12);
-	// printk("@@@@@: task = %p\n", task);
+	struct task_struct *task = running_thread();
 	intr_enable();
 	task->function(task->func_arg);
 	return;
@@ -179,7 +179,7 @@ void init_thread(struct task_struct *pthread, char *name, int prio)
 #ifndef CONFIG_LOONGARCH64
         pthread->self_kstack = (uint32_t*)((uint32_t)pthread + PG_SIZE);
 #else
-        pthread->self_kstack = (uint64_t *)((uint64_t)pthread + PAGE_SIZE);
+        pthread->self_kstack = (uint64_t *)((uint64_t)pthread + KERNEL_STACK_SIZE);
 #endif
         pthread->priority = prio;
         pthread->ticks = prio;
@@ -204,8 +204,7 @@ void init_thread(struct task_struct *pthread, char *name, int prio)
 struct task_struct *thread_start(char *name, int prio, thread_func function, void *func_arg)
 {
         /* pcb都位于内核空间,包括用户进程的pcb也是在内核空间 */
-        struct task_struct *thread = get_kernel_pages(1);
-	printk("@@@@@: thread = %p\n", thread);
+        struct task_struct *thread = get_kernel_pages(4);
         init_thread(thread, name, prio);
         thread_create(thread, function, func_arg);
 

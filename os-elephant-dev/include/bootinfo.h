@@ -3,7 +3,7 @@
 
 #include <asm-offsets.h>
 
-#define KERNEL_STACK_SIZE	0x00001000   // 4K
+#define KERNEL_STACK_SIZE	0x00004000   // 4K
 
 #ifndef __ASSEMBLY__
 

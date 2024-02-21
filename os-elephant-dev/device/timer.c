@@ -62,8 +62,6 @@ static void intr_timer_handler(struct pt_regs *regs)
 {
 	struct task_struct* cur_thread = running_thread();
 
-	printk("@@@@@: cur_thread = %p, stack_magic = %p\n", cur_thread, cur_thread->stack_magic);
-
 	ASSERT(cur_thread->stack_magic == 0x19870916);         // 检查栈是否溢出
 
 	cur_thread->elapsed_ticks++;	  // 记录此线程占用的cpu时间嘀
