@@ -1,8 +1,9 @@
 #ifndef _BOOTINFO_H
 #define _BOOTINFO_H
 
-#define KERNEL_STACK_SIZE	0x00004000   // 16K
-#define PT_SIZE			328
+#include <asm-offsets.h>
+
+#define KERNEL_STACK_SIZE	0x00001000   // 4K
 
 #ifndef __ASSEMBLY__
 

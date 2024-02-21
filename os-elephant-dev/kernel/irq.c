@@ -114,8 +114,9 @@ void timer_interrupt(struct pt_regs *regs)
 
 void irq_init(void)
 {
+	printk("irq_init start\n");
 	exception_init();
-	register_handler(EXCCODE_TIMER, timer_interrupt);
+	// register_handler(EXCCODE_TIMER, timer_interrupt);
 
 	printk("irq_init done\n");
 }

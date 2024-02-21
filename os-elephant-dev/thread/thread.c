@@ -54,7 +54,7 @@ static struct list_elem* thread_tag;// 用于保存队列中的线程结点
 #ifndef CONFIG_LOONGARCH64
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 #else
-extern void switch_to(struct task_struct* next);
+extern void switch_to(struct task_struct *cur, struct task_struct* next);
 #endif
 extern void init(void);
 /* 系统空闲时运行的线程 */
@@ -69,13 +69,13 @@ extern void init(void);
 /* 获取当前线程pcb指针 */
 struct task_struct* running_thread() {
 #ifndef CONFIG_LOONGARCH64
-   uint32_t esp; 
-   asm ("mov %%esp, %0" : "=g" (esp));
-  /* 取esp整数部分即pcb起始地址 */
-   return (struct task_struct*)(esp & 0xfffff000);
+	uint32_t esp; 
+	asm ("mov %%esp, %0" : "=g" (esp));
+	/* 取esp整数部分即pcb起始地址 */
+	return (struct task_struct*)(esp & 0xfffff000);
 #else
-   // uint64_t esp;
-   return NULL;
+	register uint64_t sp asm("sp");
+	return (struct task_struct *)(sp & PAGE_MASK);
 #endif
 }
 
@@ -91,8 +91,8 @@ static void kernel_thread(void)
 {
 	register uint64_t sp asm("sp");
 	struct task_struct *task = (struct task_struct *)(sp >> 12 << 12);
-	printk("@@@@@: task = %p\n", task);
-	printk("@@@@@: 123222kkkkk\n");
+	// printk("@@@@@: task = %p\n", task);
+	intr_enable();
 	task->function(task->func_arg);
 	return;
 }
@@ -154,7 +154,7 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
 	kthread_stack->ebp = kthread_stack->ebx = kthread_stack->esi = kthread_stack->edi = 0;
 #else
 	memset(kthread_stack, 0, sizeof(struct thread_stack));
-	kthread_stack->sched_ra = (uint64_t)kernel_thread;
+	kthread_stack->reg01 = (uint64_t)kernel_thread;
 	kthread_stack->csr_crmd = read_csr_crmd();
 	kthread_stack->csr_prmd = read_csr_prmd();
 	kthread_stack->reg03 = (uint64_t)pthread->self_kstack;
@@ -219,56 +219,61 @@ struct task_struct *thread_start(char *name, int prio, thread_func function, voi
 	/* 加入全部线程队列 */
 	list_append(&thread_all_list, &thread->all_list_tag);
 
-	switch_to(thread);
+	// switch_to(thread);
 
         return thread;
 }
 
-// /* 将kernel中的main函数完善为主线程 */
-// static void make_main_thread(void) {
-// /* 因为main线程早已运行,咱们在loader.S中进入内核时的mov esp,0xc009f000,
-// 就是为其预留了tcb,地址为0xc009e000,因此不需要通过get_kernel_page另分配一页*/
-//    main_thread = running_thread();
-//    init_thread(main_thread, "main", 31);
+/* 将kernel中的main函数完善为主线程 */
+static void make_main_thread(void)
+{
+	/**
+	 * 因为main线程早已运行, 预留了tcb, 因此不需要通过get_kernel_page另分配一页
+	 */
+	main_thread = running_thread();
+	init_thread(main_thread, "main", 31);
 
-// /* main函数是当前线程,当前线程不在thread_ready_list中,
-//  * 所以只将其加在thread_all_list中. */
-//    ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
-//    list_append(&thread_all_list, &main_thread->all_list_tag);
-// }
+	/* main函数是当前线程,当前线程不在thread_ready_list中,
+	* 所以只将其加在thread_all_list中. */
+	ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
+	list_append(&thread_all_list, &main_thread->all_list_tag);
+}
 
 /* 实现任务调度 */
-void schedule() {
-   ASSERT(intr_get_status() == INTR_OFF);
+void schedule()
+{
+	ASSERT(intr_get_status() == INTR_OFF);
 
-   struct task_struct* cur = running_thread(); 
-   if (cur->status == TASK_RUNNING) { // 若此线程只是cpu时间片到了,将其加入到就绪队列尾
-      ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
-      list_append(&thread_ready_list, &cur->general_tag);
-      cur->ticks = cur->priority;     // 重新将当前线程的ticks再重置为其priority;
-      cur->status = TASK_READY;
-   } else { 
-      /* 若此线程需要某事件发生后才能继续上cpu运行,
-      不需要将其加入队列,因为当前线程不在就绪队列中。*/
-   }
+	struct task_struct* cur = running_thread(); 
+	if (cur->status == TASK_RUNNING) { // 若此线程只是cpu时间片到了,将其加入到就绪队列尾
+		ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+		list_append(&thread_ready_list, &cur->general_tag);
+		cur->ticks = cur->priority;     // 重新将当前线程的ticks再重置为其priority;
+		cur->status = TASK_READY;
+	} else { 
+		/**
+		 * 若此线程需要某事件发生后才能继续上cpu运行,
+		 * 不需要将其加入队列,因为当前线程不在就绪队列中。
+		 */
+	}
 
-   /* 如果就绪队列中没有可运行的任务,就唤醒idle */
-   if (list_empty(&thread_ready_list)) {
-      thread_unblock(idle_thread);
-   }
+	/* 如果就绪队列中没有可运行的任务,就唤醒idle */
+	if (list_empty(&thread_ready_list)) {
+		thread_unblock(idle_thread);
+	}
 
-   ASSERT(!list_empty(&thread_ready_list));
-   thread_tag = NULL;	  // thread_tag清空
-/* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
-   thread_tag = list_pop(&thread_ready_list);   
-   struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
-   next->status = TASK_RUNNING;
+	ASSERT(!list_empty(&thread_ready_list));
+	thread_tag = NULL;	  // thread_tag清空
+	/* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
+	thread_tag = list_pop(&thread_ready_list);   
+	struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
+	next->status = TASK_RUNNING;
 
-   /* 击活任务页表等 TODO */
-   // process_activate(next);
+	/* 击活任务页表等 TODO */
+	// process_activate(next);
 
-   /* TODO */
-   // switch_to(cur, next);
+	/* TODO */
+	switch_to(cur, next);
 }
 
 /* 当前线程将自己阻塞,标志其状态为stat. */
@@ -431,21 +436,22 @@ struct task_struct* pid2thread(int32_t pid) {
 }
 
 /* 初始化线程环境 */
-void thread_init(void) {
-   put_str("thread_init start\n");
+void thread_init(void)
+{
+	put_str("thread_init start\n");
 
-   list_init(&thread_ready_list);
-   list_init(&thread_all_list);
-   pid_pool_init();
+	list_init(&thread_ready_list);
+	list_init(&thread_all_list);
+	pid_pool_init();
 
- /* 先创建第一个用户进程:init */
-   // process_execute(init, "init");         // 放在第一个初始化,这是第一个进程,init进程的pid为1
+	/* 先创建第一个用户进程:init */
+	// process_execute(init, "init");         // 放在第一个初始化,这是第一个进程,init进程的pid为1
 
-/* 将当前main函数创建为线程 */
-   // make_main_thread();
+	/* 将当前main函数创建为线程 */
+	make_main_thread();
 
-   /* 创建idle线程 */
-   // idle_thread = thread_start("idle", 10, idle, NULL);
+	/* 创建idle线程 */
+	// idle_thread = thread_start("idle", 10, idle, NULL);
 
-   put_str("thread_init done\n");
+	put_str("thread_init done\n");
 }

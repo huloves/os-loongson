@@ -15,7 +15,7 @@ SECTIONS
                 __start_init_task = .;
                 init_thread_union = .; 
                 init_stack = .;
-                . = __start_init_task + 0x00004000;
+                . = __start_init_task + 0x00001000;
 		*(.data)
 		*(.rodata)
 		. = ALIGN(8192);

@@ -5,6 +5,21 @@
 #include <regdef.h>
 #include <loongarch.h>
 
+
+	.macro	cpu_save_nonscratch thread
+	stptr.d	s0, \thread, THREAD_REG23
+	stptr.d	s1, \thread, THREAD_REG24
+	stptr.d	s2, \thread, THREAD_REG25
+	stptr.d	s3, \thread, THREAD_REG26
+	stptr.d	s4, \thread, THREAD_REG27
+	stptr.d	s5, \thread, THREAD_REG28
+	stptr.d	s6, \thread, THREAD_REG29
+	stptr.d	s7, \thread, THREAD_REG30
+	stptr.d	s8, \thread, THREAD_REG31
+	stptr.d	sp, \thread, THREAD_REG03
+	stptr.d	fp, \thread, THREAD_REG22
+	.endm
+
 	.macro	cpu_restore_nonscratch thread
 	ldptr.d	s0, \thread, THREAD_REG23
 	ldptr.d	s1, \thread, THREAD_REG24
