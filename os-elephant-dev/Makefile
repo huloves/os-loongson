@@ -3,7 +3,8 @@ CROSS_COMPILE = ../toolchains/cross-tools/bin/loongarch64-unknown-linux-gnu-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
-CFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -Wno-address-of-packed-member -c -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/ -I ./thread/ -I ./userprog/ -I ./device/ -I ./fs/
+CFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -Wno-address-of-packed-member -c \
+	 -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/ -I ./thread/ -I ./userprog/ -I ./device/ -I ./fs/ -I ./kprobe/arch/loongarch/include -I ./kprobe/include
 AFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib
 
@@ -13,6 +14,8 @@ OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)
 	$(BUILD_DIR)/cache.o $(BUILD_DIR)/trap.o $(BUILD_DIR)/genex.o $(BUILD_DIR)/pgtable.o $(BUILD_DIR)/fault.o \
 	$(BUILD_DIR)/mem.o $(BUILD_DIR)/memblock.o $(BUILD_DIR)/bitmap.o $(BUILD_DIR)/list.o $(BUILD_DIR)/debug.o \
 	$(BUILD_DIR)/switch.o $(BUILD_DIR)/thread.o $(BUILD_DIR)/sync.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/timer.o
+
+KPROBE_OBJS = 
 
 $(BUILD_DIR)/head.o: boot/loongarch/head.S
 	$(CC) $(AFLAGS) $< -o $@
