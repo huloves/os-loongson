@@ -15,8 +15,6 @@ OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)
 	$(BUILD_DIR)/mem.o $(BUILD_DIR)/memblock.o $(BUILD_DIR)/bitmap.o $(BUILD_DIR)/list.o $(BUILD_DIR)/debug.o \
 	$(BUILD_DIR)/switch.o $(BUILD_DIR)/thread.o $(BUILD_DIR)/sync.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/timer.o
 
-KPROBE_OBJS = 
-
 $(BUILD_DIR)/head.o: boot/loongarch/head.S
 	$(CC) $(AFLAGS) $< -o $@
 
@@ -104,7 +102,12 @@ $(BUILD_DIR)/switch.o: thread/switch_loongarch.S
 $(BUILD_DIR)/timer.o: device/timer.c
 	$(CC) $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/kernel.elf: $(OBJS)
+KPROBE_OBJS = kallsyms.o
+
+kallsyms.o: kprobe/kallsyms/kallsyms.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/kernel.elf: $(OBJS) $(KPROBE_OBJS)
 	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
 
 # 指定源码和目标文件路径

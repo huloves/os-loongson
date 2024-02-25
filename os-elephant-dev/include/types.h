@@ -5,5 +5,6 @@
 
 typedef uint64_t	phys_addr_t;
 typedef uint64_t	phys_size_t;
+typedef uint64_t	size_t;
 
 #endif /* _TYPES_H */

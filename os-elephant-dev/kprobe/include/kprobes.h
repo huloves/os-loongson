@@ -6,6 +6,11 @@
 #include <list.h>
 #include <types.h>
 
+#define KPROBE_HIT_ACTIVE	0x00000001
+#define KPROBE_HIT_SS		0x00000002
+#define KPROBE_REENTER		0x00000004
+#define KPROBE_HIT_SSDONE	0x00000008	
+
 struct kprobe {
 	/** 
 	 * 保存kprobe对象
@@ -20,6 +25,10 @@ struct kprobe {
 	 */
 	const char *symbol_name;
 	/**
+	 * 符号偏移
+	 */
+	unsigned int offset;
+	/**
 	 * 被探测点的原指令，被断点指令覆盖的指令
 	 */
 	kprobe_opcode_t opcode;
@@ -28,5 +37,7 @@ struct kprobe {
 	 */
 	struct arch_specific_insn ainsn;
 };
+
+int register_kprobe(struct kprobe *p);
 
 #endif /* _KPROBES_H */

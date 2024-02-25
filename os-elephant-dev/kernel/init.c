@@ -17,6 +17,7 @@
 #include <bootinfo.h>
 #include <boot_param.h>
 #include <memblock.h>
+#include <kallsyms.h>
 #endif
 
 #ifdef CONFIG_LOONGARCH64
@@ -35,6 +36,7 @@ void init_all()
 	int a = 1, b = 16;
 	int i;
 	int c = 0x10;
+	uint64_t sym_addr;
 #ifdef CONFIG_LOONGARCH64
 	serial_ns16550a_init(9600);
 	put_str("hello os-loongson\n");
@@ -55,6 +57,7 @@ void init_all()
 	setup_arch();
 	trap_init();
 	irq_init();
+
 	// intr_enable();
 #endif
 #ifndef CONFIG_LOONGARCH64
@@ -68,6 +71,8 @@ void init_all()
 	thread_init();    // 初始化线程相关结构
 	thread_start("kthread_a", 31, kthread_a, "kthread_a");
 	printk("@@@@@: KKKKKLLKK\n");
+	sym_addr = kallsyms_lookup_name("kthread_a");
+	printk("sym_addr = %p\n", sym_addr);
 	timer_init();     // 初始化PIT
 	// console_init();   // 控制台初始化最好放在开中断之前
 	// keyboard_init();  // 键盘初始化
