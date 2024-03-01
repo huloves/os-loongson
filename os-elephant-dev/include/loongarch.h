@@ -1,7 +1,9 @@
 #ifndef _LOONGARCH_H
 #define _LOONGARCH_H
 
+#ifndef BITS_PER_LONG
 #define BITS_PER_LONG	64
+#endif
 
 #define BIT(nr)			(1UL << (nr))
 #define BIT_ULL(nr)		(1ULL << (nr))

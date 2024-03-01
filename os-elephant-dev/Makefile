@@ -104,13 +104,10 @@ $(BUILD_DIR)/switch.o: thread/switch_loongarch.S
 $(BUILD_DIR)/timer.o: device/timer.c
 	$(CC) $(CFLAGS) $< -o $@
 
-KPROBE_OBJS = kallsyms.o
+KPROBE_OBJS = $(BUILD_DIR)kallsyms.o
 
-kallsyms.o: kprobe/kallsyms/kallsyms.c
+$(BUILD_DIR)kallsyms.o: kprobe/kallsyms/kallsyms.c
 	$(CC) $(CFLAGS) $< -o $@
-
-$(BUILD_DIR)/kernel.elf: $(OBJS) $(KPROBE_OBJS)
-	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
 
 # 指定源码和目标文件路径
 SRC := loongarch/asm-offsets.c
@@ -175,5 +172,20 @@ kallsyms_tool: script/kallsyms.c
 .tmp_kallsyms1.S: kallsyms_tool
 	script/kallsyms --all-symbols .tmp_loong1.map > .tmp_kallsyms1.S
 
-kallsyms: .tmp_kallsyms1.S
+.tmp_kallsyms1.o: .tmp_kallsyms1.S
 	$(CC) $(AFLAGS) .tmp_kallsyms1.S -o .tmp_kallsyms1.o
+
+.tmp_loong2.map: .tmp_loong2
+	$(NM) -n .tmp_loong2 > .tmp_loong2.map
+
+.tmp_kallsyms2.S: kallsyms_tool .tmp_loong2.map
+	script/kallsyms --all-symbols .tmp_loong2.map > .tmp_kallsyms2.S
+
+.tmp_kallsyms2.o: .tmp_kallsyms2.S
+	$(CC) $(AFLAGS) .tmp_kallsyms2.S -o .tmp_kallsyms2.o
+
+.tmp_loong2: .tmp_kallsyms1.o $(OBJS) $(KPROBE_OBJS)
+	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
+
+$(BUILD_DIR)/kernel.elf: .tmp_kallsyms2.o $(OBJS) $(KPROBE_OBJS)
+	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
