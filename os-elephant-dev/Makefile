@@ -3,6 +3,8 @@ CROSS_COMPILE = ../toolchains/cross-tools/bin/loongarch64-unknown-linux-gnu-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
+NM = $(CROSS_COMPILE)nm
+
 CFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -Wno-address-of-packed-member -c \
 	 -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/ -I ./thread/ -I ./userprog/ -I ./device/ -I ./fs/ -I ./kprobe/arch/loongarch/include -I ./kprobe/include -I ./bpf/include
 AFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
@@ -102,13 +104,10 @@ $(BUILD_DIR)/switch.o: thread/switch_loongarch.S
 $(BUILD_DIR)/timer.o: device/timer.c
 	$(CC) $(CFLAGS) $< -o $@
 
-KPROBE_OBJS = kallsyms.o
+KPROBE_OBJS = $(BUILD_DIR)kallsyms.o
 
-kallsyms.o: kprobe/kallsyms/kallsyms.c
+$(BUILD_DIR)kallsyms.o: kprobe/kallsyms/kallsyms.c
 	$(CC) $(CFLAGS) $< -o $@
-
-$(BUILD_DIR)/kernel.elf: $(OBJS) $(KPROBE_OBJS)
-	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
 
 # 指定源码和目标文件路径
 SRC := loongarch/asm-offsets.c
@@ -157,4 +156,36 @@ build_dir:
 
 build: $(BUILD_DIR)/kernel.elf
 
-all: build_dir clean $(OUT) build include/asm-offsets.h
+all: build_dir clean $(OUT) build
+
+# 生成kallsyms符号表
+
+.tmp_loong1: $(OBJS) $(KPROBE_OBJS)
+	$(LD) --no-undefined -X --build-id -o .tmp_loong1 -T script/kernel.ld $(OBJS) $(KPROBE_OBJS)
+
+.tmp_loong1.map: .tmp_loong1
+	$(NM) -n .tmp_loong1 > .tmp_loong1.map
+
+kallsyms_tool: script/kallsyms.c
+	gcc script/kallsyms.c -o script/kallsyms
+
+.tmp_kallsyms1.S: kallsyms_tool
+	script/kallsyms --all-symbols .tmp_loong1.map > .tmp_kallsyms1.S
+
+.tmp_kallsyms1.o: .tmp_kallsyms1.S
+	$(CC) $(AFLAGS) .tmp_kallsyms1.S -o .tmp_kallsyms1.o
+
+.tmp_loong2.map: .tmp_loong2
+	$(NM) -n .tmp_loong2 > .tmp_loong2.map
+
+.tmp_kallsyms2.S: kallsyms_tool .tmp_loong2.map
+	script/kallsyms --all-symbols .tmp_loong2.map > .tmp_kallsyms2.S
+
+.tmp_kallsyms2.o: .tmp_kallsyms2.S
+	$(CC) $(AFLAGS) .tmp_kallsyms2.S -o .tmp_kallsyms2.o
+
+.tmp_loong2: .tmp_kallsyms1.o $(OBJS) $(KPROBE_OBJS)
+	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
+
+$(BUILD_DIR)/kernel.elf: .tmp_kallsyms2.o $(OBJS) $(KPROBE_OBJS)
+	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@

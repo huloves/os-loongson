@@ -3,6 +3,7 @@ SECTIONS
 {
         . = 0x9000000000200000;
 	PROVIDE( _start = . );
+	PROVIDE( _text = .);
         .head.text : {
                 KEEP(*(.head.text))
         }
