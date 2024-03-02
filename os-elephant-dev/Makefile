@@ -4,7 +4,7 @@ AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
 CFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -Wno-address-of-packed-member -c \
-	 -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/ -I ./thread/ -I ./userprog/ -I ./device/ -I ./fs/ -I ./kprobe/arch/loongarch/include -I ./kprobe/include
+	 -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/ -I ./thread/ -I ./userprog/ -I ./device/ -I ./fs/ -I ./kprobe/arch/loongarch/include -I ./kprobe/include -I ./bpf/include
 AFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
 LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib
 
