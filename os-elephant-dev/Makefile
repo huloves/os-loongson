@@ -169,7 +169,7 @@ all: build_dir clean $(OUT) build
 kallsyms_tool: script/kallsyms.c
 	gcc script/kallsyms.c -o script/kallsyms
 
-.tmp_kallsyms1.S: kallsyms_tool
+.tmp_kallsyms1.S: kallsyms_tool .tmp_loong1.map
 	script/kallsyms --all-symbols .tmp_loong1.map > .tmp_kallsyms1.S
 
 .tmp_kallsyms1.o: .tmp_kallsyms1.S
