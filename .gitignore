@@ -8,4 +8,5 @@ os-elephant-dev/script/kallsyms
 .tmp*
 *.o
 asm-offsets.h
+kernel.bin
 binutils-gdb/

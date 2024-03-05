@@ -18,7 +18,7 @@ kernel_entry:
 	li.d		t0, CSR_DMW1_INIT	# 一致可缓存（Coherent Cached，CA）存储访问类型，PLV0下可以使用该窗口的配置进行直接映射地址翻译，地址窗口为0x9000 xxxx xxxx xxxx
 	csrwr		t0, LOONGARCH_CSR_DMWIN1
 
-	JUMP_VIRT_ADDR	t0, t1
+	// JUMP_VIRT_ADDR	t0, t1
 
 	/* Enable PG */
 	li.w		t0, 0xb0		# 1011 0000, PLV=0, IE=0, PG=1, DATF=1
@@ -27,6 +27,12 @@ kernel_entry:
 	csrwr		t0, LOONGARCH_CSR_PRMD
 	li.w		t0, 0x00		# 0000 0000, FPE=0, SXE=0, ASXE=0, BTE=0, 不使用扩展
 	csrwr		t0, LOONGARCH_CSR_EUEN
+
+	/* We might not get launched at the address the kernel is linked to,
+	   so we jump there.  */
+	la.abs		t0, 0f
+	jirl		zero, t0, 0
+0:
 
 	la.pcrel	t0, __bss_start		# 清空.bss段
 	st.d		zero, t0, 0

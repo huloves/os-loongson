@@ -1,7 +1,7 @@
 ENTRY(kernel_entry)   /* 设置入口点 */
 SECTIONS
 {
-        . = 0x9000000000200000;
+        . = 0x9000000008000000;
 	PROVIDE( _start = . );
 	PROVIDE( _text = .);
         .head.text : {

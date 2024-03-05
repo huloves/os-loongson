@@ -1,14 +1,15 @@
 BUILD_DIR = ./build
-CROSS_COMPILE = ../toolchains/cross-tools/bin/loongarch64-unknown-linux-gnu-
+CROSS_COMPILE = /home/huloves/repositories/os-loongson/toolchains/loongson-gnu-toolchain-x86_64-loongarch64-linux-gnu/bin/loongarch64-linux-gnu-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
 NM = $(CROSS_COMPILE)nm
+OBJCOPY = $(CROSS_COMPILE)objcopy
 
-CFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -Wno-address-of-packed-member -c \
+CFLAGS = -O2 -g3 -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -Wall -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -fno-stack-protector -fno-pie -no-pie -Wno-address-of-packed-member -c \
 	 -I ./include/ -I ./lib/ -I ./lib/kernel/ -I kernel/ -I ./thread/ -I ./userprog/ -I ./device/ -I ./fs/ -I ./kprobe/arch/loongarch/include -I ./kprobe/include -I ./bpf/include
-AFLAGS = -O1 -g -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -mexplicit-relocs -ffreestanding -mno-check-zero-division -c -I ./include/
-LDFLAGS = -m elf64loongarch --no-warn-rwx-segments -G0 -n -nostdlib
+AFLAGS = -O2 -g3 -DCONFIG_64BIT -DCONFIG_LOONGARCH64 -DCONFIG_VA_BITS_40 -DCONFIG_PAGE_SIZE_4KB -DCONFIG_PGTABLE_LEVELS=3 -nostdinc -D__ASSEMBLY__ -fno-PIE -march=loongarch64 -mabi=lp64s -G0 -pipe -msoft-float -ffreestanding -mno-check-zero-division -c -I ./include/
+LDFLAGS = -m elf64loongarch -G0 -n -nostdlib
 
 OBJS = $(BUILD_DIR)/head.o $(BUILD_DIR)/init.o $(BUILD_DIR)/setup.o $(BUILD_DIR)/ns16550a.o $(BUILD_DIR)/string.o \
 	$(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/irq.o $(BUILD_DIR)/ioremap.c \
@@ -104,9 +105,9 @@ $(BUILD_DIR)/switch.o: thread/switch_loongarch.S
 $(BUILD_DIR)/timer.o: device/timer.c
 	$(CC) $(CFLAGS) $< -o $@
 
-KPROBE_OBJS = $(BUILD_DIR)kallsyms.o
+KPROBE_OBJS = $(BUILD_DIR)/kallsyms.o
 
-$(BUILD_DIR)kallsyms.o: kprobe/kallsyms/kallsyms.c
+$(BUILD_DIR)/kallsyms.o: kprobe/kallsyms/kallsyms.c
 	$(CC) $(CFLAGS) $< -o $@
 
 # 指定源码和目标文件路径
@@ -154,7 +155,7 @@ clean:
 build_dir:
 	mkdir -p $(BUILD_DIR)
 
-build: $(BUILD_DIR)/kernel.elf
+build: kernel.bin
 
 all: build_dir clean $(OUT) build
 
@@ -189,3 +190,6 @@ kallsyms_tool: script/kallsyms.c
 
 $(BUILD_DIR)/kernel.elf: .tmp_kallsyms2.o $(OBJS) $(KPROBE_OBJS)
 	$(LD) $(LDFLAGS) -T ./script/kernel.ld $^ -o $@
+
+kernel.bin: $(BUILD_DIR)/kernel.elf
+	$(OBJCOPY) -O binary $(BUILD_DIR)/kernel.elf kernel.bin
