@@ -104,9 +104,19 @@ $(BUILD_DIR)/switch.o: thread/switch_loongarch.S
 $(BUILD_DIR)/timer.o: device/timer.c
 	$(CC) $(CFLAGS) $< -o $@
 
-KPROBE_OBJS = $(BUILD_DIR)kallsyms.o
+KPROBE_OBJS = $(BUILD_DIR)kallsyms.o $(BUILD_DIR)/loongarch_kprobes.o $(BUILD_DIR)/kprobes.o \
+		$(BUILD_DIR)/slot.o
 
 $(BUILD_DIR)kallsyms.o: kprobe/kallsyms/kallsyms.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/loongarch_kprobes.o: kprobe/arch/loongarch/kprobes.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/kprobes.o: kprobe/kprobes.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/slot.o: kprobe/slot.c
 	$(CC) $(CFLAGS) $< -o $@
 
 # 指定源码和目标文件路径

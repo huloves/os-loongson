@@ -38,6 +38,8 @@ struct kprobe {
 	struct arch_specific_insn ainsn;
 };
 
+extern int arch_prepare_kprobe(struct kprobe *p);
+
 int register_kprobe(struct kprobe *p);
 
 #endif /* _KPROBES_H */

@@ -1,12 +1,15 @@
-#ifndef _ASM_KPROBES_H
-#define _ASM_KPROBES_H
+#ifndef _KPROBE_ASM_KPROBES_H
+#define _KPROBE_ASM_KPROBES_H
 
-typedef unsigned short kprobe_opcode_t;
+#include <asm/inst.h>
+
+typedef union loongarch_instruction kprobe_opcode_t;
 
 struct arch_specific_insn {
-	int is_short;
-	kprobe_opcode_t *t1_addr, *t2_addr;
-	kprobe_opcode_t t1_opcode, t2_opcode;
+	/* 原指令的副本 */
+	kprobe_opcode_t *insn;
+	/* kprobe流程完成后的返回地址 */
+	unsigned long restore;
 };
 
 #endif /* _ASM_KPROBES_H */
