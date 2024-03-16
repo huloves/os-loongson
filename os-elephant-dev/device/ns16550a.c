@@ -36,9 +36,15 @@ static void real_serial_ns16550a_init(uint64_t base_addr, uint32_t baud_rate)
 /* 发送一个字符 */
 static void real_serial_ns16550a_putc(uint64_t base_addr, char c)
 {
-    while ((inb(base_addr + UART_LSR) & UART_LSR_THRE) == 0)
-        ;  // 等待发送缓冲区为空
-    outb(c, base_addr + UART_TX);
+	while ((inb(base_addr + UART_LSR) & UART_LSR_THRE) == 0)
+		;  // 等待发送缓冲区为空
+
+	if (c == '\n') {
+		outb('\r', base_addr + UART_TX);
+		outb(c, base_addr + UART_TX);
+	} else {
+		outb(c, base_addr + UART_TX);
+	}
 }
 
 /* 接收一个字符 */

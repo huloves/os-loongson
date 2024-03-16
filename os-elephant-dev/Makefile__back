@@ -1,0 +1,23 @@
+OBJS := hello_kernel.o
+TOOLPREFIX = /home/huloves/repositories/os-loongson/toolchains/loongson-gnu-toolchain-x86_64-loongarch64-linux-gnu/bin/loongarch64-linux-gnu-
+
+CC = $(TOOLPREFIX)gcc
+LD = $(TOOLPREFIX)ld
+OBJCOPY = $(TOOLPREFIX)objcopy
+
+CFLAGS = -Wall -O2 -g3 -march=loongarch64 -mabi=lp64s -ffreestanding -fno-common -nostdlib -I. -fno-stack-protector -fno-pie -no-pie 
+LDFLAGS = -z max-page-size=16384
+
+all: kernel
+
+kernel.bin: $(OBJS) script/kernel.ld
+	$(LD) $(LDFLAGS) -T script/kernel.ld -o kernel.elf $(OBJS)
+	$(OBJCOPY) -O binary kernel.elf kernel.bin
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+all: kernel.bin
+
+clean: 
+	rm -f *.o ./kernel ./kernel.bin

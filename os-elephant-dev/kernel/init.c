@@ -38,13 +38,14 @@ void init_all()
 	int c = 0x10;
 	uint64_t sym_addr;
 #ifdef CONFIG_LOONGARCH64
-	serial_ns16550a_init(9600);
+	// serial_ns16550a_init(115200);
 	put_str("hello os-loongson\n");
-	while (1);
+	// while (1);
 #endif
 	put_str("init_all\n");
 	printk("hello %s-%c%d.%d\n", str, 'v', 0, a);
 	printk("init_all: 0x%x\n", b);
+	// while (1);
 #ifndef CONFIG_LOONGARCH64
 	idt_init();	     // 初始化中断
 #else

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define UART_BASE_ADDR	0x1fe001e0
+#define UART_BASE_ADDR	0x800000001fe20000ULL
 
 /* 串口寄存器偏移地址 */
 #define UART_RX      0       // 接收数据寄存器
