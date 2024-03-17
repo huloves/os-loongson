@@ -5,6 +5,8 @@
 #include <stdio-kernel.h>
 #include <string.h>
 
+extern void handle_bp(void);
+
 extern void *vector_table[];
 extern void do_irq(struct pt_regs *regs, uint64_t virq);
 
@@ -59,6 +61,12 @@ static inline void setup_vint_size(unsigned int size)
 	 * 设置例外与中断处理程序的间距为2^vs条指令
 	 */
 	csr_xchg32(vs << CSR_ECFG_VS_SHIFT, CSR_ECFG_VS, LOONGARCH_CSR_ECFG);
+}
+
+void do_bp(struct pt_regs *regs)
+{
+	printk("@@@@@: break happen\n");
+	regs->csr_era = regs->csr_era + 4;
 }
 
 /**
@@ -178,6 +186,8 @@ void trap_init(void)
 		vector_start = vector_table[i - EXCCODE_INT_START];
 		set_handler(i * VECSIZE, vector_start, VECSIZE);
 	}
+
+	set_handler(EXCCODE_BP * VECSIZE, handle_bp, VECSIZE);
 
 	local_flush_icache_range(eentry, eentry + 0x400);
 

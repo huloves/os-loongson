@@ -5,6 +5,8 @@
 #include <osl/print.h>
 #include <osl/list.h>
 
+#include <addrspace.h>
+
 LIST_HEAD(kprobe_list);
 DEFINE_MUTEX(kprobe_mutex);
 DEFINE_MUTEX(text_mutex);
@@ -36,7 +38,7 @@ int register_kprobe(struct kprobe *p)
 	 * 通过探测点符号名获得探测点地址
 	 */
 	addr = (kprobe_opcode_t *)kallsyms_lookup_name(p->symbol_name);
-	printk("[kprobe/%s]: p->symbol_name = %s, addr = %x\n",
+	printk("[kprobe/%s]: p->symbol_name = %s, addr = %p\n",
 				__func__, p->symbol_name, addr);
 	p->addr = addr;
 

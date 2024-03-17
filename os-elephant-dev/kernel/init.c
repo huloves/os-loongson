@@ -18,6 +18,7 @@
 #include <boot_param.h>
 #include <memblock.h>
 #include <kallsyms.h>
+#include <kprobes.h>
 #endif
 
 #ifdef CONFIG_LOONGARCH64
@@ -28,6 +29,10 @@ extern void trap_init(void);
 #endif
 
 void kthread_a(void *arg);
+
+struct kprobe kprobe_test = {
+	.symbol_name = "kthread_a",
+};
 
 /*负责初始化所有模块 */
 void init_all()
@@ -73,6 +78,11 @@ void init_all()
 	printk("@@@@@: KKKKKLLKK\n");
 	sym_addr = kallsyms_lookup_name("kthread_a");
 	printk("sym_addr = %p\n", sym_addr);
+
+	printk("@@@@@: test break\n");
+	asm volatile ("break 10");
+	register_kprobe(&kprobe_test);
+
 	timer_init();     // 初始化PIT
 	// console_init();   // 控制台初始化最好放在开中断之前
 	// keyboard_init();  // 键盘初始化

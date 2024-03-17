@@ -16,6 +16,24 @@ SYM_FUNC_START(handle_vint_\num)
 SYM_FUNC_END(handle_vint_\num)
 	.endm
 
+	.macro	build_prep_none
+	.endm
+
+	.macro	BUILD_HANDLER exception handler prep
+	.align	5
+SYM_FUNC_START(handle_\exception)
+	BACKUP_T0T1
+	SAVE_ALL
+	build_prep_\prep
+	move	a0, sp
+	la.abs	t0, do_\handler
+	jirl	ra, t0, 0
+	RESTORE_ALL_AND_RET
+SYM_FUNC_END(handle_\exception)
+	.endm
+
+	BUILD_HANDLER bp bp none
+
 	BUILD_VI_HANDLER 0
 	BUILD_VI_HANDLER 1
 	BUILD_VI_HANDLER 2
