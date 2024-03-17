@@ -3,9 +3,11 @@
 #include <mutex.h>
 #include <slot.h>
 #include <osl/print.h>
+#include <osl/list.h>
 
-static kprobe_mutex_t kprobe_mutex;
-static kprobe_mutex_t text_mutex;
+LIST_HEAD(kprobe_list);
+DEFINE_MUTEX(kprobe_mutex);
+DEFINE_MUTEX(text_mutex);
 
 static int prepare_kprobe(struct kprobe *p)
 {
@@ -38,12 +40,4 @@ int register_kprobe(struct kprobe *p)
 out:
 	kprobe_mutex_unlock(&kprobe_mutex);
 	return ret;
-}
-
-int kprobe_init(void)
-{
-	kprobe_mutex_init(&kprobe_mutex);
-	kprobe_mutex_init(&text_mutex);
-	kprobe_mutex_init(&slot_mutex);
-	return 0;
 }

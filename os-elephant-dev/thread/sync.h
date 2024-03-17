@@ -17,6 +17,20 @@ struct lock {
    uint32_t holder_repeat_nr;		    // 锁的持有者重复申请锁的次数
 };
 
+      // .semaphore.waiters = LIST_HEAD_INIT(.semaphore.waiters),
+#define DEFINE_MUTEX(name) \
+   struct lock name = { \
+      .holder = NULL, \
+      .holder_repeat_nr = 0, \
+      .semaphore.value = 1, \
+      .semaphore.waiters = { \
+         .head.prev = NULL, \
+         .head.next = &name.semaphore.waiters.tail, \
+         .tail.prev = &name.semaphore.waiters.head, \
+         .tail.next = NULL, \
+      }, \
+   }
+
 void sema_init(struct semaphore* psema, uint8_t value); 
 void sema_down(struct semaphore* psema);
 void sema_up(struct semaphore* psema);

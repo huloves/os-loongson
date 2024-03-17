@@ -23,7 +23,7 @@ struct slot_allocation_s slot_allocation = {
 	.total_size = SLOT_SIZE,
 };
 
-kprobe_mutex_t slot_mutex;
+DEFINE_MUTEX(slot_mutex);
 
 void *slot_alloc(uint64_t opcode_num)
 {

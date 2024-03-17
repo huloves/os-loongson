@@ -32,6 +32,17 @@ struct list {
 /* 自定义函数类型function,用于在list_traversal中做回调函数 */
 typedef bool (function)(struct list_elem*, int arg);
 
+#define LIST_HEAD_INIT(name) \
+      { \
+         .head.prev = NULL, \
+         .head.next = &name.tail, \
+         .tail.prev = &name.head, \
+         .tail.next = NULL, \
+      }
+
+#define LIST_HEAD(name) \
+      struct list name = LIST_HEAD_INIT(name)
+
 void list_init (struct list*);
 void list_insert_before(struct list_elem* before, struct list_elem* elem);
 void list_push(struct list* plist, struct list_elem* elem);
