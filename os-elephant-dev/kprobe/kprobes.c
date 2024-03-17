@@ -14,6 +14,16 @@ static int prepare_kprobe(struct kprobe *p)
 	return arch_prepare_kprobe(p);
 }
 
+#define __arm_kprobe(p)		arch_arm_kprobe(p)
+
+static int arm_kprobe(struct kprobe *kp)
+{
+	kprobe_mutex_lock(&text_mutex);
+	__arm_kprobe(kp);
+	kprobe_mutex_unlock(&text_mutex);
+	return 0;
+}
+
 int register_kprobe(struct kprobe *p)
 {
 	int ret = 0;
@@ -36,7 +46,13 @@ int register_kprobe(struct kprobe *p)
 	kprobe_mutex_unlock(&text_mutex);
 	if (ret)
 		goto out;
-
+	
+	list_push(&kprobe_list, &p->list);
+	ret = arm_kprobe(p);
+	if (ret) {
+		list_remove(&p->list);
+		goto out;
+	}
 out:
 	kprobe_mutex_unlock(&kprobe_mutex);
 	return ret;

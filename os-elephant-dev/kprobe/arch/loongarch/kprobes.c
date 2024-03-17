@@ -1,5 +1,6 @@
 #include <kprobes.h>
 #include <slot.h>
+#include <asm/kprobes.h>
 #include <asm/inst.h>
 #include <osl/break.h>
 #include <osl/types.h>
@@ -98,4 +99,10 @@ int arch_prepare_kprobe(struct kprobe *p)
 		arch_prepare_simulate(p);
 
 	return 0;
+}
+
+void arch_arm_kprobe(struct kprobe *p)
+{
+	*p->addr = breakpoint_insn;
+	flush_insn_slot(p);
 }

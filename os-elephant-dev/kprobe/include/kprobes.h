@@ -39,6 +39,7 @@ struct kprobe {
 };
 
 extern int arch_prepare_kprobe(struct kprobe *p);
+extern void arch_arm_kprobe(struct kprobe *p);
 
 int register_kprobe(struct kprobe *p);
 
