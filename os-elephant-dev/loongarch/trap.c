@@ -4,6 +4,9 @@
 #include <cacheflush.h>
 #include <stdio-kernel.h>
 #include <string.h>
+#include <branch.h>
+#include <break.h>
+#include <interrupt.h>
 
 extern void handle_bp(void);
 
@@ -65,8 +68,28 @@ static inline void setup_vint_size(unsigned int size)
 
 void do_bp(struct pt_regs *regs)
 {
-	printk("@@@@@: break happen\n");
-	regs->csr_era = regs->csr_era + 4;
+	unsigned int opcode, bcode;
+	unsigned long era = exception_era(regs);
+
+	if (regs->csr_prmd & CSR_PRMD_PIE)
+		intr_enable();
+	
+	opcode = *(uint32_t *)era;
+
+	bcode = opcode & 0x7fff;
+
+	switch (bcode) {
+	case BRK_KPROBE_BP:
+		printk("@@@@@: BP happen\n");
+		break;
+	case BRK_KPROBE_SSTEPBP:
+		printk("@@@@@: SSTEPBP happen\n");
+		break;
+	default:
+		break;
+	}
+
+	compute_return_era(regs);
 }
 
 /**
