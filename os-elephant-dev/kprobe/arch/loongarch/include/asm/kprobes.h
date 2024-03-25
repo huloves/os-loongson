@@ -1,7 +1,9 @@
 #ifndef _KPROBE_ASM_KPROBES_H
 #define _KPROBE_ASM_KPROBES_H
 
+#include <pt_regs.h>
 #include <asm/inst.h>
+#include <osl/types.h>
 
 #define MAX_INSN_SIZE	2
 
@@ -37,5 +39,7 @@ struct kprobe_ctlblk {
 	unsigned long saved_status;
 	struct prev_kprobe prev_kprobe;
 };
+
+bool kprobe_breakpoint_handler(struct pt_regs *regs);
 
 #endif /* _ASM_KPROBES_H */

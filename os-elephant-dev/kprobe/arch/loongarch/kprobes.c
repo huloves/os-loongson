@@ -1,6 +1,7 @@
 #include <kprobes.h>
 #include <slot.h>
 #include <pt_regs.h>
+#include <loongarch.h>
 #include <asm/kprobes.h>
 #include <asm/inst.h>
 #include <osl/break.h>
@@ -108,9 +109,68 @@ void arch_arm_kprobe(struct kprobe *p)
 	flush_insn_slot(p);
 }
 
+static void save_local_irqflag(struct kprobe_ctlblk *kcb,
+			       struct pt_regs *regs)
+{
+	kcb->saved_status = regs->csr_prmd;
+	regs->csr_prmd &= ~CSR_PRMD_PIE;
+}
+
+static void restore_local_irqflag(struct kprobe_ctlblk *kcb,
+				  struct pt_regs *regs)
+{
+	regs->csr_prmd = kcb->saved_status;
+}
+
+static void post_kprobe_handle(struct kprobe *cur, struct kprobe_ctlblk *kcb, struct pt_regs *regs)
+{
+	printk("@@@@@: cur->ainsn.restore = %p\n", cur->ainsn.restore);
+	if (cur->ainsn.restore != 0)
+		regs->csr_era = cur->ainsn.restore;
+	
+	kcb->kprobe_status = KPROBE_HIT_SSDONE;
+}
+
+static void setup_singlestep(struct kprobe *p, struct pt_regs *regs,
+			     struct kprobe_ctlblk *kcb)
+{
+	if (p->ainsn.insn) {
+		save_local_irqflag(kcb, regs);
+		regs->csr_era = (unsigned long)p->ainsn.insn;
+	} else {
+		printk("@@@@@: need simulate insn\n");
+	}
+}
+
 bool kprobe_breakpoint_handler(struct pt_regs *regs)
 {
 	struct kprobe_ctlblk *kcb;
 	struct kprobe *p, *cur_kprobe;
 	kprobe_opcode_t *addr = (kprobe_opcode_t *)regs->csr_era;
+
+	/**
+	 * TODO: 关闭抢占
+	 */
+	kcb = &kprobe_ctlblk;
+	p = get_kprobe(addr);
+	if (p) {
+		setup_singlestep(p, regs, kcb);
+	}
+
+	return true;
+}
+
+bool kprobe_singlestep_handler(struct pt_regs *regs)
+{
+	struct kprobe_ctlblk *kcb = &kprobe_ctlblk;
+	unsigned long addr = regs->csr_era;
+	struct kprobe *p = get_kprobe_ss((kprobe_opcode_t *)addr);
+
+	if (p != NULL) {
+		restore_local_irqflag(kcb, regs);
+		post_kprobe_handle(p, kcb, regs);
+		return true;
+	}
+
+	return false;
 }

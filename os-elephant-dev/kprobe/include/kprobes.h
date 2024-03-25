@@ -38,9 +38,13 @@ struct kprobe {
 	struct arch_specific_insn ainsn;
 };
 
+extern struct kprobe_ctlblk kprobe_ctlblk;
+
 extern int arch_prepare_kprobe(struct kprobe *p);
 extern void arch_arm_kprobe(struct kprobe *p);
 
 int register_kprobe(struct kprobe *p);
+struct kprobe *get_kprobe(kprobe_opcode_t *addr);
+struct kprobe *get_kprobe_ss(kprobe_opcode_t *addr);
 
 #endif /* _KPROBES_H */

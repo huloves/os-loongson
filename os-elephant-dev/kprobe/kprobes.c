@@ -11,6 +11,8 @@ LIST_HEAD(kprobe_list);
 DEFINE_MUTEX(kprobe_mutex);
 DEFINE_MUTEX(text_mutex);
 
+struct kprobe_ctlblk kprobe_ctlblk;
+
 static int prepare_kprobe(struct kprobe *p)
 {
 	return arch_prepare_kprobe(p);
@@ -24,6 +26,37 @@ static int arm_kprobe(struct kprobe *kp)
 	__arm_kprobe(kp);
 	kprobe_mutex_unlock(&text_mutex);
 	return 0;
+}
+
+struct kprobe *get_kprobe(kprobe_opcode_t *addr)
+{
+	struct list_elem *list;
+	struct kprobe *kprobe_entry;
+
+	list_for_each(list, &kprobe_list) {
+		kprobe_entry = container_of(list, struct kprobe, list);
+		if (kprobe_entry->addr == addr) {
+			return kprobe_entry;
+		}
+	}
+
+	return NULL;
+}
+
+struct kprobe *get_kprobe_ss(kprobe_opcode_t *addr)
+{
+	struct list_elem *list;
+	struct kprobe *kprobe_entry;
+
+	list_for_each(list, &kprobe_list) {
+		kprobe_entry = container_of(list, struct kprobe, list);
+		if (&kprobe_entry->ainsn.insn[1] == addr) {
+			printk("[debug]: find kporbe by ss addr(%llx), *addr = %x\n", (uint64_t)addr, *addr);
+			return kprobe_entry;
+		}
+	}
+
+	return NULL;
 }
 
 int register_kprobe(struct kprobe *p)
