@@ -1,5 +1,6 @@
 #include <kprobes.h>
 #include <slot.h>
+#include <pt_regs.h>
 #include <asm/kprobes.h>
 #include <asm/inst.h>
 #include <osl/break.h>
@@ -105,4 +106,11 @@ void arch_arm_kprobe(struct kprobe *p)
 {
 	*p->addr = breakpoint_insn;
 	flush_insn_slot(p);
+}
+
+bool kprobe_breakpoint_handler(struct pt_regs *regs)
+{
+	struct kprobe_ctlblk *kcb;
+	struct kprobe *p, *cur_kprobe;
+	kprobe_opcode_t *addr = (kprobe_opcode_t *)regs->csr_era;
 }

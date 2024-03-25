@@ -27,4 +27,15 @@ struct arch_specific_insn {
 	unsigned long restore;
 };
 
+struct prev_kprobe {
+	struct kprobe *kp;
+	unsigned int status;
+};
+
+struct kprobe_ctlblk {
+	unsigned int kprobe_status;
+	unsigned long saved_status;
+	struct prev_kprobe prev_kprobe;
+};
+
 #endif /* _ASM_KPROBES_H */
