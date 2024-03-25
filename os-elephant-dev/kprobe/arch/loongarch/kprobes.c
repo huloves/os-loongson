@@ -134,6 +134,8 @@ static void post_kprobe_handle(struct kprobe *cur, struct kprobe_ctlblk *kcb, st
 static void setup_singlestep(struct kprobe *p, struct pt_regs *regs,
 			     struct kprobe_ctlblk *kcb)
 {
+	kcb->kprobe_status = KPROBE_HIT_SS;
+
 	if (p->ainsn.insn) {
 		save_local_irqflag(kcb, regs);
 		regs->csr_era = (unsigned long)p->ainsn.insn;
@@ -166,7 +168,7 @@ bool kprobe_singlestep_handler(struct pt_regs *regs)
 	unsigned long addr = regs->csr_era;
 	struct kprobe *p = get_kprobe_ss((kprobe_opcode_t *)addr);
 
-	if (p != NULL) {
+	if ((p != NULL) && (kcb->kprobe_status & (KPROBE_HIT_SS | KPROBE_REENTER))) {
 		restore_local_irqflag(kcb, regs);
 		post_kprobe_handle(p, kcb, regs);
 		return true;
