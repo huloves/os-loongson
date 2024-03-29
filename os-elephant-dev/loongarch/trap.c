@@ -80,18 +80,15 @@ void do_bp(struct pt_regs *regs)
 
 	switch (bcode) {
 	case BRK_KPROBE_BP:
-		printk("@@@@@: BP happen\n");
 		kprobe_breakpoint_handler(regs);
+		compute_return_era(regs);
 		break;
 	case BRK_KPROBE_SSTEPBP:
-		printk("@@@@@: SSTEPBP happen\n");
 		kprobe_singlestep_handler(regs);
 		break;
 	default:
 		break;
 	}
-
-	compute_return_era(regs);
 }
 
 /**

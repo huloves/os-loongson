@@ -51,7 +51,6 @@ struct kprobe *get_kprobe_ss(kprobe_opcode_t *addr)
 	list_for_each(list, &kprobe_list) {
 		kprobe_entry = container_of(list, struct kprobe, list);
 		if (&kprobe_entry->ainsn.insn[1] == addr) {
-			printk("[debug]: find kporbe by ss addr(%llx), *addr = %x\n", (uint64_t)addr, *addr);
 			return kprobe_entry;
 		}
 	}
@@ -71,8 +70,6 @@ int register_kprobe(struct kprobe *p)
 	 * 通过探测点符号名获得探测点地址
 	 */
 	addr = (kprobe_opcode_t *)kallsyms_lookup_name(p->symbol_name);
-	printk("[kprobe/%s]: p->symbol_name = %s, addr = %p\n",
-				__func__, p->symbol_name, addr);
 	p->addr = addr;
 
 	kprobe_mutex_lock(&kprobe_mutex);

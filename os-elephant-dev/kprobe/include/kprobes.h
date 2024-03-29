@@ -11,6 +11,10 @@
 #define KPROBE_REENTER		0x00000004
 #define KPROBE_HIT_SSDONE	0x00000008	
 
+struct kprobe;
+
+typedef int (*kprobe_pre_handler_t) (struct kprobe *, struct pt_regs *);
+
 struct kprobe {
 	/** 
 	 * 保存kprobe对象
@@ -28,6 +32,10 @@ struct kprobe {
 	 * 符号偏移
 	 */
 	unsigned int offset;
+	/**
+	 * 被探测指令执行前执行的函数
+	 */
+	kprobe_pre_handler_t pre_handler;
 	/**
 	 * 被探测点的原指令，被断点指令覆盖的指令
 	 */

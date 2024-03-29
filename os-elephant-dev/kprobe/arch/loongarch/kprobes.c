@@ -124,7 +124,6 @@ static void restore_local_irqflag(struct kprobe_ctlblk *kcb,
 
 static void post_kprobe_handle(struct kprobe *cur, struct kprobe_ctlblk *kcb, struct pt_regs *regs)
 {
-	printk("@@@@@: cur->ainsn.restore = %p\n", cur->ainsn.restore);
 	if (cur->ainsn.restore != 0)
 		regs->csr_era = cur->ainsn.restore;
 	
@@ -156,7 +155,8 @@ bool kprobe_breakpoint_handler(struct pt_regs *regs)
 	kcb = &kprobe_ctlblk;
 	p = get_kprobe(addr);
 	if (p) {
-		setup_singlestep(p, regs, kcb);
+		if (!p->pre_handler || !p->pre_handler(p, regs))
+			setup_singlestep(p, regs, kcb);
 	}
 
 	return true;

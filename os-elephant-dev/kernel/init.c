@@ -30,8 +30,15 @@ extern void trap_init(void);
 
 void kthread_a(void *arg);
 
+int handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+	printk("[kprobe] kthread_a will run\n");
+	return 0;
+}
+
 struct kprobe kprobe_test = {
 	.symbol_name = "kthread_a",
+	.pre_handler = handler_pre,
 };
 
 /*负责初始化所有模块 */
@@ -75,12 +82,7 @@ void init_all()
 #endif
 	thread_init();    // 初始化线程相关结构
 	thread_start("kthread_a", 31, kthread_a, "kthread_a");
-	printk("@@@@@: KKKKKLLKK\n");
-	sym_addr = kallsyms_lookup_name("kthread_a");
-	printk("sym_addr = %p\n", sym_addr);
 
-	printk("@@@@@: test break\n");
-	asm volatile ("break 10");
 	register_kprobe(&kprobe_test);
 
 	timer_init();     // 初始化PIT
